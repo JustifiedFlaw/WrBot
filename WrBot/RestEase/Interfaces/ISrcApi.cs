@@ -17,7 +17,7 @@ namespace RestEase.Interfaces
         [Get("games?name={name}&_bulk=yes&max=1&orderby=similarity")]
         Task<GetGameByNameResponse> GetGameByName([Path] string name);
 
-        [Get("games/{gameId}/categories")]
+        [Get("games/{gameId}/categories?orderby=pos")]
         Task<GetGameCategoriesResponse> GetGameCategories([Path] string gameId);
     }
 }

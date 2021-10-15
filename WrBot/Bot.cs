@@ -205,7 +205,9 @@ public class Bot
             );
 
         // TODO: use cache
-        var categories = this.SrcApi.GetGameCategories(game.Id).Result.Data;
+        // TODO: order by same order as speedrun.com
+        var categories = this.SrcApi.GetGameCategories(game.Id).Result.Data
+            .Where(c => c.Type == "per-game");
 
         var similarities = categories.Select(
             c => new KeyValuePair<Category, int>(c, 

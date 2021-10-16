@@ -17,7 +17,6 @@ public class Bot
     public BotSettings Settings { get; private set; }
 
     public ITwitchApi TwitchApi { get; private set; }
-
     public ISrcApi SrcApi { get; private set; }
 
     public TwitchClient TwitchClient { get; private set; }
@@ -25,10 +24,11 @@ public class Bot
     public ChatCommandAnalyzer ChatCommandAnalyzer { get; private set; }
 
     public SetDefault SetRunner { get; private set; }
-
     public SetDefault SetGame { get; private set; }
-
     public SetDefault SetCategory { get; private set; }
+
+    public EventHandler<OnBotJoinedChannelArgs> OnJoinedChannel;
+    public EventHandler<OnBotLeftChannelArgs> OnLeftChannel;
 
     public Bot(BotSettings settings)
     {
@@ -60,10 +60,7 @@ public class Bot
         WebSocketClient customClient = new WebSocketClient(clientOptions);
         var client = new TwitchClient(customClient);
 
-        foreach (var channel in this.Settings.Channels)
-        {
-            client.Initialize(credentials, channel);
-        }
+        client.Initialize(credentials, this.Settings.Channels.ToList());
 
         client.OnMessageReceived += TwitchClient_OnMessageReceived;
 
@@ -112,17 +109,31 @@ public class Bot
     private void JoinChannel(string username)
     {
         this.TwitchClient.JoinChannel(username);
-        TwitchClient.SendMessage(this.Settings.BotName, $"Joined {username}");
 
-        // TODO: save
+        if(this.OnJoinedChannel != null)
+        {
+            this.OnJoinedChannel.Invoke(this, new OnBotJoinedChannelArgs
+            {
+                Channel = username
+            });
+        }
+        
+        TwitchClient.SendMessage(this.Settings.BotName, $"Joined {username}");
     }
 
     private void LeaveChannel(string username)
     {
         this.TwitchClient.LeaveChannel(username);
-        TwitchClient.SendMessage(this.Settings.BotName, $"Left {username}");
 
-        // TODO: save
+        if(this.OnLeftChannel != null)
+        {
+            this.OnLeftChannel.Invoke(this, new OnBotLeftChannelArgs
+            {
+                Channel = username
+            });
+        }
+
+        TwitchClient.SendMessage(this.Settings.BotName, $"Left {username}");
     }
 
     private void GetWr(string channel)

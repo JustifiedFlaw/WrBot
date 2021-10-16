@@ -11,8 +11,6 @@ namespace WrBot
             var botSettings = LoadBotSettings();
             var bot = new Bot(botSettings);
 
-            // TODO: listen to WrBot chat for !joinme, !leaveme
-
             Console.WriteLine("Listening to " + string.Join(", ", botSettings.Channels));
             Console.WriteLine("Type 'quit' to close the WrBot");
             

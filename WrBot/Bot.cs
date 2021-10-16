@@ -209,10 +209,11 @@ public class Bot
         var categories = this.SrcApi.GetGameCategories(game.Id).Result.Data
             .Where(c => c.Type == "per-game");
 
+        // TODO if no significant matches, then pick the first
         var similarities = categories.Select(
-            c => new KeyValuePair<Category, int>(c, 
-            LevenshteinDistance.Compute(c.Name, categorySearch)))
-            .OrderBy(kvp => kvp.Value);
+            c => new KeyValuePair<Category, decimal>(c, 
+            StringComparer.PercentWordMatch(c.Name, categorySearch)))
+            .OrderByDescending(kvp => kvp.Value);
 
         return similarities.First().Key;
     }

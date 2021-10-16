@@ -189,8 +189,7 @@ public class Bot
         }
         else
         {
-            // TODO: use cache
-            return this.SrcApi.GetGameByName(gameName).Result.Data.First();
+            return GetGameByName(gameName);
         }
     }
 
@@ -204,23 +203,49 @@ public class Bot
                     : streamTitle
             );
 
-        // TODO: use cache
-        // TODO: order by same order as speedrun.com
-        var categories = this.SrcApi.GetGameCategories(game.Id).Result.Data
-            .Where(c => c.Type == "per-game");
+        var category = MemoryCache.Default["Category " + categorySearch] as Category;
+        if(category == null)
+        {
+            // TODO: order by same order as speedrun.com
+            var categories = this.SrcApi.GetGameCategories(game.Id).Result.Data
+                .Where(c => c.Type == "per-game");
 
-        // TODO if no significant matches, then pick the first
-        var similarities = categories.Select(
-            c => new KeyValuePair<Category, decimal>(c, 
-            StringComparer.PercentWordMatch(c.Name, categorySearch)))
-            .OrderByDescending(kvp => kvp.Value);
+            var similarities = categories.Select(
+                c => new KeyValuePair<Category, decimal>(c, 
+                StringComparer.PercentWordMatch(c.Name, categorySearch)))
+                .OrderByDescending(kvp => kvp.Value);
 
-        return similarities.First().Key;
+            category = similarities.First().Key;
+
+            MemoryCache.Default["Category " + categorySearch] = category;
+        }
+
+        return category;
+    }
+
+    private Game GetGameByName(string gameName)
+    {
+        var game = MemoryCache.Default["Game " + gameName] as Game;
+        if (game == null)
+        {
+            game = this.SrcApi.GetGameByName(gameName).Result.Data.First();
+
+            MemoryCache.Default["Game " + gameName] = game;
+        }
+
+        return game;
     }
 
     private string GetRunnerName(string id)
     {
-        // TODO: use cache
-        return this.SrcApi.GetUser(id).Result.Data.Names.International;
+        var runnerName = MemoryCache.Default["User " + id] as string;
+        if (runnerName == null)
+        {
+            runnerName = this.SrcApi.GetUser(id).Result.Data.Names.International;
+
+            MemoryCache.Default["User " + id] = runnerName;
+        }
+
+        return runnerName;
     }
 }

@@ -151,7 +151,7 @@ public class Bot
 
     private Stream GetWrStreamInfo(string channel)
     {
-        var streamInfo = MemoryCache.Default[channel] as Stream;
+        var streamInfo = MemoryCache.Default["Stream " + channel] as Stream;
         if (streamInfo == null)
         {
             streamInfo = this.TwitchApi.GetStreams(channel).Result.Data.FirstOrDefault();
@@ -165,7 +165,7 @@ public class Bot
             }
             else
             {
-                MemoryCache.Default[channel] = streamInfo;
+                MemoryCache.Default["Stream " + channel] = streamInfo;
             }
         }
 

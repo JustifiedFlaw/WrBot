@@ -81,18 +81,48 @@ public class Bot
     {
         this.ChatCommandAnalyzer.Analyze(e.ChatMessage.Message);
 
-        this.SetRunner.Set(this.ChatCommandAnalyzer.HasSetRunner, this.ChatCommandAnalyzer.Runner);
-        this.SetGame.Set(this.ChatCommandAnalyzer.HasSetGame, this.ChatCommandAnalyzer.Game);
-        this.SetCategory.Set(this.ChatCommandAnalyzer.HasSetCategory, this.ChatCommandAnalyzer.Category);
+        if (e.ChatMessage.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (this.ChatCommandAnalyzer.Command == ChatCommands.JoinMe)
+            {
+                JoinChannel(e.ChatMessage.Username);
+            }
+            else if(this.ChatCommandAnalyzer.Command == ChatCommands.LeaveMe)
+            {
+                LeaveChannel(e.ChatMessage.Username);
+            }
+        }
+        else
+        {
+            this.SetRunner.Set(this.ChatCommandAnalyzer.HasSetRunner, this.ChatCommandAnalyzer.Runner);
+            this.SetGame.Set(this.ChatCommandAnalyzer.HasSetGame, this.ChatCommandAnalyzer.Game);
+            this.SetCategory.Set(this.ChatCommandAnalyzer.HasSetCategory, this.ChatCommandAnalyzer.Category);
 
-        if (this.ChatCommandAnalyzer.IsWr)
-        {
-            GetWr(e.ChatMessage.Channel);
+            if (this.ChatCommandAnalyzer.Command == ChatCommands.Wr)
+            {
+                GetWr(e.ChatMessage.Channel);
+            }
+            else if(this.ChatCommandAnalyzer.Command == ChatCommands.Pb)
+            {
+                GetPb(e.ChatMessage.Channel);
+            }   
         }
-        else if(this.ChatCommandAnalyzer.IsPb)
-        {
-            GetPb(e.ChatMessage.Channel);
-        }
+    }
+
+    private void JoinChannel(string username)
+    {
+        this.TwitchClient.JoinChannel(username);
+        TwitchClient.SendMessage(this.Settings.BotName, $"Joined {username}");
+
+        // TODO: save
+    }
+
+    private void LeaveChannel(string username)
+    {
+        this.TwitchClient.LeaveChannel(username);
+        TwitchClient.SendMessage(this.Settings.BotName, $"Left {username}");
+
+        // TODO: save
     }
 
     private void GetWr(string channel)

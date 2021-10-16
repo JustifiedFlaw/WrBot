@@ -3,8 +3,7 @@ using System.Text.RegularExpressions;
 
 public class ChatCommandAnalyzer
 {
-    public bool IsWr { get; private set; }
-    public bool IsPb { get; private set; }
+    public ChatCommands Command { get; private set; }
     public bool HasSetRunner { get; private set; }
     public bool HasSetGame { get; private set; }
     public bool HasSetCategory { get; private set; }
@@ -19,10 +18,30 @@ public class ChatCommandAnalyzer
     {
         ResetDefaults();
         
-        this.IsWr = Regex.IsMatch(message, @"^!wr($|\s)"); // starts with !wr and a whitespace
-        this.IsPb = Regex.IsMatch(message, @"^!pb($|\s)"); // starts with !pb and a whitespace
+        var commandMatch = Regex.Match(message, @"^!\w+($|\s)");
+        if (commandMatch.Success)
+        {
+            switch (commandMatch.Value.Trim())
+            {
+                case "!wr":
+                    this.Command = ChatCommands.Wr;
+                    break;
+                case "!pb":
+                    this.Command = ChatCommands.Pb;
+                    break;
+                case "!joinme":
+                    this.Command = ChatCommands.JoinMe;
+                    break;
+                case "!leaveme":
+                    this.Command = ChatCommands.LeaveMe;
+                    break;
+                default:
+                    this.Command = ChatCommands.None;
+                    break;
+            }
+        }
 
-        if (!this.IsWr && !this.IsPb)
+        if (this.Command == ChatCommands.None)
         {
             return;
         }
@@ -52,7 +71,7 @@ public class ChatCommandAnalyzer
 
         if (!this.HasSetRunner && !this.HasSetGame && ! this.HasSetCategory)
         {
-            if (this.IsWr) //only game and category parameters
+            if (this.Command == ChatCommands.Wr) //only game and category parameters
             {
                 if (parameters.Length > 0)
                 {
@@ -66,7 +85,7 @@ public class ChatCommandAnalyzer
                     this.Category = parameters[1];
                 }
             }
-            else //pb: runner, game and category are possible
+            else if(this.Command == ChatCommands.Pb)
             {
                 if (parameters.Length > 0)
                 {
@@ -109,6 +128,7 @@ public class ChatCommandAnalyzer
 
     private void ResetDefaults()
     {
+        this.Command = ChatCommands.None;
         this.HasSetRunner = false;
         this.HasSetGame = false;
         this.HasSetCategory = false;

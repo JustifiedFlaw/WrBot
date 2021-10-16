@@ -5,67 +5,83 @@ namespace WrBotTests
     public class ChatCommandAnalyzerTests
     {
         [Fact]
-        public void When_Chat_Message_Is_Wr_Then_IsWr_Is_True()
+        public void When_Chat_Message_Is_JoinMe_Then_Command_Is_JoinMe()
+        {
+            var chatCommandAnalyzer = new ChatCommandAnalyzer();
+
+            chatCommandAnalyzer.Analyze("!joinme");
+
+            Assert.Equal(ChatCommands.JoinMe, chatCommandAnalyzer.Command);
+        }
+        
+        [Fact]
+        public void When_Chat_Message_Is_LeaveMe_Then_Command_Is_LeaveMe()
+        {
+            var chatCommandAnalyzer = new ChatCommandAnalyzer();
+
+            chatCommandAnalyzer.Analyze("!leaveme");
+
+            Assert.Equal(ChatCommands.LeaveMe, chatCommandAnalyzer.Command);
+        }
+
+        [Fact]
+        public void When_Chat_Message_Is_Wr_Then_Command_Is_Wr()
         {
             var chatCommandAnalyzer = new ChatCommandAnalyzer();
 
             chatCommandAnalyzer.Analyze("!wr");
 
-            Assert.True(chatCommandAnalyzer.IsWr);
-            Assert.False(chatCommandAnalyzer.IsPb);
+            Assert.Equal(ChatCommands.Wr, chatCommandAnalyzer.Command);
         }
 
         [Fact]
-        public void When_Chat_Message_Starts_With_Wr_Then_IsWr_Is_True()
+        public void When_Chat_Message_Starts_With_Wr_Then_Command_Is_Wr()
         {
             var chatCommandAnalyzer = new ChatCommandAnalyzer();
 
             chatCommandAnalyzer.Analyze("!wr Game");
 
-            Assert.True(chatCommandAnalyzer.IsWr);
-            Assert.False(chatCommandAnalyzer.IsPb);
+            Assert.Equal(ChatCommands.Wr, chatCommandAnalyzer.Command);
         }
         
         [Fact]
-        public void When_Chat_Message_Starts_With_Wr_And_Non_Whitespace_Then_IsWr_Is_False()
+        public void When_Chat_Message_Starts_With_Wr_And_Non_Whitespace_Then_Command_Is_None()
         {
             var chatCommandAnalyzer = new ChatCommandAnalyzer();
 
             chatCommandAnalyzer.Analyze("!wrbla");
 
-            Assert.False(chatCommandAnalyzer.IsWr);
+            Assert.Equal(ChatCommands.None, chatCommandAnalyzer.Command);
         }
 
         [Fact]
-        public void When_Chat_Message_Is_Pb_Then_IsPb_Is_True()
+        public void When_Chat_Message_Is_Pb_Then_Command_Is_Pb()
         {
             var chatCommandAnalyzer = new ChatCommandAnalyzer();
 
             chatCommandAnalyzer.Analyze("!pb");
 
-            Assert.True(chatCommandAnalyzer.IsPb);
-            Assert.False(chatCommandAnalyzer.IsWr);
+            Assert.Equal(ChatCommands.Pb, chatCommandAnalyzer.Command);
         }
 
         [Fact]
-        public void When_Chat_Message_Starts_With_Pb_Then_IsWr_Is_True()
+        public void When_Chat_Message_Starts_With_Pb_Then_Command_Is_Pb()
         {
             var chatCommandAnalyzer = new ChatCommandAnalyzer();
 
             chatCommandAnalyzer.Analyze("!pb runner");
 
-            Assert.True(chatCommandAnalyzer.IsPb);
-            Assert.False(chatCommandAnalyzer.IsWr);
+            Assert.Equal(ChatCommands.Pb, chatCommandAnalyzer.Command);
         }
         
         [Fact]
-        public void When_Chat_Message_Starts_With_Pb_And_Non_Whitespace_Then_IsPb_Is_False()
+        public void When_Chat_Message_Starts_With_Pb_And_Non_Whitespace_Then_Command_Is_None()
         {
             var chatCommandAnalyzer = new ChatCommandAnalyzer();
 
             chatCommandAnalyzer.Analyze("!pbbla");
 
-            Assert.False(chatCommandAnalyzer.IsPb);
+            Assert.Equal(ChatCommands.None, chatCommandAnalyzer.Command);
         }
 
         [Fact]

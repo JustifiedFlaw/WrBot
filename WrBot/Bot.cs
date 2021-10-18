@@ -89,21 +89,23 @@ public class Bot
                 LeaveChannel(e.ChatMessage.Username);
             }
         }
-        else
+        
+        if(e.ChatMessage.IsBroadcaster || e.ChatMessage.IsModerator)
         {
+            // TODO: save to settings
             this.SetRunner.Set(this.ChatCommandAnalyzer.HasSetRunner, this.ChatCommandAnalyzer.Runner);
             this.SetGame.Set(this.ChatCommandAnalyzer.HasSetGame, this.ChatCommandAnalyzer.Game);
             this.SetCategory.Set(this.ChatCommandAnalyzer.HasSetCategory, this.ChatCommandAnalyzer.Category);
-
-            if (this.ChatCommandAnalyzer.Command == ChatCommands.Wr)
-            {
-                GetWr(e.ChatMessage.Channel);
-            }
-            else if(this.ChatCommandAnalyzer.Command == ChatCommands.Pb)
-            {
-                GetPb(e.ChatMessage.Channel);
-            }   
         }
+
+        if (this.ChatCommandAnalyzer.Command == ChatCommands.Wr)
+        {
+            GetWr(e.ChatMessage.Channel);
+        }
+        else if(this.ChatCommandAnalyzer.Command == ChatCommands.Pb)
+        {
+            GetPb(e.ChatMessage.Channel);
+        }   
     }
 
     private void JoinChannel(string username)

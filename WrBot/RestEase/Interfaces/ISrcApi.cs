@@ -19,5 +19,8 @@ namespace RestEase.Interfaces
 
         [Get("games/{gameId}/categories?orderby=pos")]
         Task<GetGameCategoriesResponse> GetGameCategories([Path] string gameId);
+
+        [Get("users/{userId}/personal-bests?game={gameId}")]
+        Task<GetPersonalBestsResponse> GetPersonalBests([Path] string userId, [Path] string gameId);
     }
 }

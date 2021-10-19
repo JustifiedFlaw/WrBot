@@ -10,6 +10,7 @@ using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
+using TwitchLib.Communication.Events;
 using TwitchLib.Communication.Models;
 
 public class Bot
@@ -55,6 +56,7 @@ public class Bot
         client.Initialize(credentials, this.Settings.Channels.Select(c => c.Name).ToList());
 
         client.OnMessageReceived += TwitchClient_OnMessageReceived;
+        // client.OnLog += TwitchClient_OnLog;
 
         client.Connect();
 
@@ -65,6 +67,10 @@ public class Bot
 
         return client;
     }
+
+    // private void TwitchClient_OnLog(object sender, OnLogArgs e)
+    // {
+    // }
 
     private void TwitchClient_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
@@ -154,7 +160,7 @@ public class Bot
         }
         else if(runs.Length > 0)
         {
-            var runnerNames = string.Join(", ", runs.SelectMany(r => r.Run.Players.Select(p => GetRunnerName(p.Id))));
+            var runnerNames = string.Join(", ", runs.SelectMany(r => r.Run.Players.Select(p => GetRunner(p.Id).Names.International)));
 
             this.TwitchClient.SendMessage(channelSettings.Name, $"World record for {game.Names.International} {category.Name} is {runs[0].Run.Times.PrimaryTimeSpan.Format()} by {runnerNames}");
         }
@@ -162,28 +168,33 @@ public class Bot
 
     private void GetPb(ChannelSettings channelSettings)
     {
-        // TODO
-        // var streamInfo = GetWrStreamInfo(channel);
+        var streamInfo = GetWrStreamInfo(channelSettings.Name);
         
-        // var runner = DetermineRunner(channel);
-        // if (runner == null)
-        // {
-        //     this.TwitchClient.SendMessage(channel, $"The runner {} could not be found on speedrun .com. Please use \"!pb [runner]\" or \"!pb -setrunner [runner]");
-        //     return;
-        // }
+        var runner = DetermineRunner(channelSettings.Runner, channelSettings.Name);
+        if (runner == null)
+        {
+            return;
+        }
 
-        // var game = DetermineGame(streamInfo.GameName, streamInfo.Title);
-        // if (game == null)
-        // {
-        //     this.TwitchClient.SendMessage(channel, "A game could not be determined from the Twitch category or stream title. Please use \"!pb [runner] [game] [category]\" or \"!pb -setgame [game]\"");
-        //     return;
-        // }
+        var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title);
+        if (game == null)
+        {
+            this.TwitchClient.SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category or stream title. Please use \"!pb [runner] [game] [category]\" or \"!pb -setgame [game]\"");
+            return;
+        }
 
-        // var category = DetermineCategory(game, streamInfo.Title);
+        var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title);
 
-        // var wr = GetSrcPb(runner, game, category);
+        var personalBests = this.SrcApi.GetPersonalBests(runner.Id, game.Id).Result.Data
+            .Where(pb => pb.Run.CategoryId.Equals(category.Id, StringComparison.InvariantCultureIgnoreCase));
+        if (personalBests.Count() == 0)
+        {
+            this.TwitchClient.SendMessage(channelSettings.Name, $"No personal bests were found for {runner.Names.International} in {game.Names.International} {category.Name}");
+            return;
+        }
+        var pb = personalBests.First();
 
-        // this.TwitchClient.SendMessage(channel, $"{runner.Names.International}'s pb for {game.Names.International} {category.Name} is {wr.Times.PrimaryTimeSpan}");
+        this.TwitchClient.SendMessage(channelSettings.Name, $"{runner.Names.International}'s pb for {game.Names.International} {category.Name} is {pb.Run.Times.PrimaryTimeSpan.Format()} (#{pb.Place})");
     }
 
     private Stream GetWrStreamInfo(string channel)
@@ -207,6 +218,34 @@ public class Bot
         }
 
         return streamInfo;
+    }
+
+    private User DetermineRunner(DefaultValueSettings runnerDefault, string channelName)
+    {
+        string runnerName = this.ChatCommandAnalyzer.HasRunner || this.ChatCommandAnalyzer.HasSetRunner 
+            ? this.ChatCommandAnalyzer.Runner
+            : (
+                runnerDefault.Enabled 
+                    ? runnerDefault.Value
+                    : channelName
+            );
+        
+        User runner;
+        if (string.IsNullOrWhiteSpace(runnerName))
+        {
+            runner = null;
+        }
+        else
+        {
+            runner = GetRunner(runnerName);
+        }
+
+        if (runner == null)
+        {
+            this.TwitchClient.SendMessage(channelName, $"The runner {runnerName} could not be found on speedrun .com. Please use \"!pb [runner]\" or \"!pb -setrunner [runner]");
+        }
+
+        return runner;
     }
 
     private Game DetermineGame(DefaultValueSettings gameDefault, string streamGame, string streamTitle)
@@ -273,16 +312,22 @@ public class Bot
         return game;
     }
 
-    private string GetRunnerName(string id)
+    private User GetRunner(string idOrName)
     {
-        var runnerName = MemoryCache.Default["User " + id] as string;
-        if (runnerName == null)
+        var runner = MemoryCache.Default["Runner " + idOrName] as User;
+        if (runner == null)
         {
-            runnerName = this.SrcApi.GetUser(id).Result.Data.Names.International;
-
-            MemoryCache.Default["User " + id] = runnerName;
+            try
+            {
+                runner = this.SrcApi.GetUser(idOrName).Result.Data; 
+                MemoryCache.Default["Runner " + idOrName] = runner;
+            }
+            catch
+            {
+                runner = null;
+            }
         }
 
-        return runnerName;
+        return runner;
     }
 }

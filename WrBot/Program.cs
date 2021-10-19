@@ -17,18 +17,30 @@ namespace WrBot
             bot.OnJoinedChannel += Bot_OnJoinedChannel;
             bot.OnLeftChannel += Bot_OnLeftChannel;
 
-            Console.WriteLine("Listening to " + string.Join(", ", AppSettings.BotSettings.Channels));
+            foreach (var channelSettings in AppSettings.BotSettings.Channels)
+            {
+                channelSettings.Runner.OnSetDefaultChanged += DefaultValue_Changed;
+                channelSettings.Game.OnSetDefaultChanged += DefaultValue_Changed;
+                channelSettings.Category.OnSetDefaultChanged += DefaultValue_Changed;
+            }
+
+            Console.WriteLine("Listening to " + string.Join(", ", AppSettings.BotSettings.Channels.Select(c => c.Name)));
             Console.WriteLine("Type 'quit' to close the WrBot");
             
             while (Console.ReadLine() != "quit");
         }
 
+        private static void DefaultValue_Changed(object sender, OnSetDefaultChangedArgs e)
+        {
+            SaveSettings();
+        }
+
         private static void Bot_OnLeftChannel(object sender, OnBotLeftChannelArgs e)
         {
-            if(AppSettings.BotSettings.Channels.Contains(e.Channel))
+            if(AppSettings.BotSettings.Channels.Count(c => c.Name.Equals(e.Channel, StringComparison.InvariantCultureIgnoreCase)) > 0)
             {
                 AppSettings.BotSettings.Channels = 
-                    AppSettings.BotSettings.Channels.Where(c => c != e.Channel)
+                    AppSettings.BotSettings.Channels.Where(c => !c.Name.Equals(e.Channel, StringComparison.InvariantCultureIgnoreCase))
                     .ToArray();
 
                 SaveSettings();
@@ -37,10 +49,15 @@ namespace WrBot
 
         private static void Bot_OnJoinedChannel(object sender, OnBotJoinedChannelArgs e)
         {
-            if(!AppSettings.BotSettings.Channels.Contains(e.Channel))
+            if(AppSettings.BotSettings.Channels.Count(c => c.Name.Equals(e.Channel, StringComparison.InvariantCultureIgnoreCase)) == 0)
             {
                 AppSettings.BotSettings.Channels = 
-                    AppSettings.BotSettings.Channels.Append(e.Channel).ToArray();
+                    AppSettings.BotSettings.Channels.Append(new ChannelSettings{
+                        Name = e.Channel,
+                        Runner = new DefaultValueSettings(),
+                        Game = new DefaultValueSettings(),
+                        Category = new DefaultValueSettings()
+                    }).ToArray();
 
                 SaveSettings();
             }

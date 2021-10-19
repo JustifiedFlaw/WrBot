@@ -23,10 +23,6 @@ public class Bot
 
     public ChatCommandAnalyzer ChatCommandAnalyzer { get; private set; }
 
-    public SetDefault SetRunner { get; private set; }
-    public SetDefault SetGame { get; private set; }
-    public SetDefault SetCategory { get; private set; }
-
     public EventHandler<OnBotJoinedChannelArgs> OnJoinedChannel;
     public EventHandler<OnBotLeftChannelArgs> OnLeftChannel;
 
@@ -43,10 +39,6 @@ public class Bot
         this.TwitchClient = InitializeTwitchClient();
 
         this.ChatCommandAnalyzer = new ChatCommandAnalyzer();
-
-        this.SetRunner = new SetDefault();
-        this.SetGame = new SetDefault();
-        this.SetCategory = new SetDefault();
     }
 
     private TwitchClient InitializeTwitchClient()
@@ -60,15 +52,15 @@ public class Bot
         WebSocketClient customClient = new WebSocketClient(clientOptions);
         var client = new TwitchClient(customClient);
 
-        client.Initialize(credentials, this.Settings.Channels.ToList());
+        client.Initialize(credentials, this.Settings.Channels.Select(c => c.Name).ToList());
 
         client.OnMessageReceived += TwitchClient_OnMessageReceived;
 
         client.Connect();
 
-        foreach (var channel in this.Settings.Channels)
+        foreach (var channelSettings in this.Settings.Channels)
         {
-            client.JoinChannel(channel);
+            client.JoinChannel(channelSettings.Name);
         }
 
         return client;
@@ -90,21 +82,21 @@ public class Bot
             }
         }
         
+        var channelSettings = this.Settings.Channels.First(c => c.Name.Equals(e.ChatMessage.Channel, StringComparison.InvariantCultureIgnoreCase));
         if(e.ChatMessage.IsBroadcaster || e.ChatMessage.IsModerator)
         {
-            // TODO: save to settings
-            this.SetRunner.Set(this.ChatCommandAnalyzer.HasSetRunner, this.ChatCommandAnalyzer.Runner);
-            this.SetGame.Set(this.ChatCommandAnalyzer.HasSetGame, this.ChatCommandAnalyzer.Game);
-            this.SetCategory.Set(this.ChatCommandAnalyzer.HasSetCategory, this.ChatCommandAnalyzer.Category);
+            channelSettings.Runner.Set(this.ChatCommandAnalyzer.HasSetRunner, this.ChatCommandAnalyzer.Runner);
+            channelSettings.Game.Set(this.ChatCommandAnalyzer.HasSetGame, this.ChatCommandAnalyzer.Game);
+            channelSettings.Category.Set(this.ChatCommandAnalyzer.HasSetCategory, this.ChatCommandAnalyzer.Category);
         }
 
         if (this.ChatCommandAnalyzer.Command == ChatCommands.Wr)
         {
-            GetWr(e.ChatMessage.Channel);
+            GetWr(channelSettings);
         }
         else if(this.ChatCommandAnalyzer.Command == ChatCommands.Pb)
         {
-            GetPb(e.ChatMessage.Channel);
+            GetPb(channelSettings);
         }   
     }
 
@@ -138,35 +130,35 @@ public class Bot
         TwitchClient.SendMessage(this.Settings.BotName, $"Left {username}");
     }
 
-    private void GetWr(string channel)
+    private void GetWr(ChannelSettings channelSettings)
     {
-        var streamInfo = GetWrStreamInfo(channel);
+        var streamInfo = GetWrStreamInfo(channelSettings.Name);
         
-        var game = DetermineGame(streamInfo.GameName, streamInfo.Title);
+        var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title);
         if (game == null)
         {
-            this.TwitchClient.SendMessage(channel, "A game could not be determined from the Twitch category or stream title. Please use \"!wr [game]\" or \"!wr -setgame [game]\"");
+            this.TwitchClient.SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category or stream title. Please use \"!wr [game]\" or \"!wr -setgame [game]\"");
             return;
         }
 
-        var category = DetermineCategory(game, streamInfo.Title);
+        var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title);
 
         // TODO: This can cause an exception with certain categories
         var runs = this.SrcApi.GetLeaderboard(game.Id, category.Id).Result.Data.Runs;
 
         if (runs.Length == 0)
         {
-            this.TwitchClient.SendMessage(channel, $"There are no registered runs for {game.Names.International} {category.Name}");   
+            this.TwitchClient.SendMessage(channelSettings.Name, $"There are no registered runs for {game.Names.International} {category.Name}");   
         }
         else if(runs.Length > 0)
         {
             var runnerNames = string.Join(", ", runs.SelectMany(r => r.Run.Players.Select(p => GetRunnerName(p.Id))));
 
-            this.TwitchClient.SendMessage(channel, $"World record for {game.Names.International} {category.Name} is {runs[0].Run.Times.PrimaryTimeSpan.Format()} by {runnerNames}");
+            this.TwitchClient.SendMessage(channelSettings.Name, $"World record for {game.Names.International} {category.Name} is {runs[0].Run.Times.PrimaryTimeSpan.Format()} by {runnerNames}");
         }
     }
 
-    private void GetPb(string channel)
+    private void GetPb(ChannelSettings channelSettings)
     {
         // TODO
         // var streamInfo = GetWrStreamInfo(channel);
@@ -215,13 +207,13 @@ public class Bot
         return streamInfo;
     }
 
-    private Game DetermineGame(string streamGame, string streamTitle)
+    private Game DetermineGame(DefaultValueSettings gameDefault, string streamGame, string streamTitle)
     {
         string gameName = this.ChatCommandAnalyzer.HasGame || this.ChatCommandAnalyzer.HasSetGame 
             ? this.ChatCommandAnalyzer.Game
             : (
-                this.SetGame.Enabled 
-                    ? this.SetGame.Value
+                gameDefault.Enabled 
+                    ? gameDefault.Value
                     : streamGame
             );
         
@@ -236,13 +228,13 @@ public class Bot
         }
     }
 
-    private Category DetermineCategory(Game game, string streamTitle)
+    private Category DetermineCategory(DefaultValueSettings categoryDefault, Game game, string streamTitle)
     {
         string categorySearch = this.ChatCommandAnalyzer.HasCategory || this.ChatCommandAnalyzer.HasSetCategory 
             ? this.ChatCommandAnalyzer.Category
             : (
-                this.SetCategory.Enabled 
-                    ? this.SetCategory.Value
+                categoryDefault.Enabled 
+                    ? categoryDefault.Value
                     : streamTitle
             );
 

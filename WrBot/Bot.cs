@@ -68,6 +68,8 @@ public class Bot
 
     private void TwitchClient_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
+        // TODO: log use
+
         this.ChatCommandAnalyzer.Analyze(e.ChatMessage.Message);
 
         if (e.ChatMessage.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))

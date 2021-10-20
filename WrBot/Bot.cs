@@ -146,7 +146,7 @@ public class Bot
 
     private void GetWr(ChannelSettings channelSettings)
     {
-        var streamInfo = GetWrStreamInfo(channelSettings.Name);
+        var streamInfo = GetStreamInfo(channelSettings.Name);
         
         var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title);
         if (game == null)
@@ -174,7 +174,7 @@ public class Bot
 
     private void GetPb(ChannelSettings channelSettings)
     {
-        var streamInfo = GetWrStreamInfo(channelSettings.Name);
+        var streamInfo = GetStreamInfo(channelSettings.Name);
         
         var runner = DetermineRunner(channelSettings.Runner, channelSettings.Name);
         if (runner == null)
@@ -203,7 +203,7 @@ public class Bot
         this.TwitchClient.SendMessage(channelSettings.Name, $"{runner.Names.International}'s pb for {game.Names.International} {category.Name} is {pb.Run.Times.PrimaryTimeSpan.Format()} (#{pb.Place})");
     }
 
-    private Stream GetWrStreamInfo(string channel)
+    private Stream GetStreamInfo(string channel)
     {
         var streamInfo = MemoryCache.Default["Stream " + channel] as Stream;
         if (streamInfo == null)
@@ -219,7 +219,7 @@ public class Bot
             }
             else
             {
-                MemoryCache.Default["Stream " + channel] = streamInfo;
+                MemoryCache.Default.Set("Stream " + channel, streamInfo, DateTimeOffset.Now.AddMinutes(15));
             }
         }
 

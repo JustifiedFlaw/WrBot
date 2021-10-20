@@ -71,7 +71,7 @@ namespace WrBot
 
         private static void SaveSettings()
         {
-            var jsonString = JsonConvert.SerializeObject(AppSettings);
+            var jsonString = JsonConvert.SerializeObject(AppSettings, Formatting.Indented);
             File.WriteAllText(
                 Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "appsettings.json",
                 jsonString);

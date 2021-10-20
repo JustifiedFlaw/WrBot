@@ -96,6 +96,8 @@ public class Bot
             channelSettings.Runner.Set(this.ChatCommandAnalyzer.HasSetRunner, this.ChatCommandAnalyzer.Runner);
             channelSettings.Game.Set(this.ChatCommandAnalyzer.HasSetGame, this.ChatCommandAnalyzer.Game);
             channelSettings.Category.Set(this.ChatCommandAnalyzer.HasSetCategory, this.ChatCommandAnalyzer.Category);
+
+            // TODO: method to unset the defaults
         }
 
         if (this.ChatCommandAnalyzer.Command == ChatCommands.Wr)

@@ -299,7 +299,7 @@ public class Bot
 
             category = similarities.First().Key;
 
-            MemoryCache.Default["Category " + categorySearch] = category;
+            MemoryCache.Default.Set("Category " + categorySearch, category, DateTimeOffset.Now.AddHours(1));
         }
 
         return category;
@@ -312,7 +312,7 @@ public class Bot
         {
             game = this.SrcApi.GetGameByName(gameName).Result.Data.FirstOrDefault();
 
-            MemoryCache.Default["Game " + gameName] = game;
+            MemoryCache.Default.Set("Game " + gameName, game, DateTimeOffset.Now.AddHours(1));
         }
 
         return game;
@@ -326,7 +326,7 @@ public class Bot
             try
             {
                 runner = this.SrcApi.GetUser(idOrName).Result.Data; 
-                MemoryCache.Default["Runner " + idOrName] = runner;
+                MemoryCache.Default.Set("Runner " + idOrName, runner, DateTimeOffset.Now.AddHours(1));
             }
             catch
             {

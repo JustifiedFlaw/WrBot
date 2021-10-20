@@ -19,6 +19,22 @@ public class DefaultValueSettings
             this.Enabled = newEnabled;
             this.Value = newValue;
 
+            InvokeOnSetDefaultChanged();
+        }
+    }
+
+    internal void Reset()
+    {
+        this.Enabled = false;
+        this.Value = null;
+        
+        InvokeOnSetDefaultChanged();
+    }
+
+    private void InvokeOnSetDefaultChanged()
+    {
+        if (this.OnSetDefaultChanged != null)
+        {
             this.OnSetDefaultChanged.Invoke(this, new OnSetDefaultChangedArgs());
         }
     }

@@ -19,6 +19,7 @@
 | !pb -setrunner runner | Sets the default runner permanently | Broadcaster and moderators |
 | !pb -setgame game | Sets the default game permanently | Broadcaster and moderators |
 | !pb -setcategory "category name" | Sets the default category permanently | Broadcaster and moderators |
+| !wr -reset | Resets the defaults permanently | Broadcaster and moderators |
 
 # Creating the appsettings.json file
 For security reasons the mandatory appsettings.json file is not provided in the source code. If you want to run this bot on your machine you will need to create it. Here is the structure it should have:

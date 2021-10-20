@@ -13,6 +13,7 @@ public class ChatCommandAnalyzer
     public bool HasRunner { get; private set; }
     public bool HasGame { get; private set; }
     public bool HasCategory { get; private set; }
+    public bool HasReset { get; private set; }
 
     public void Analyze(string message)
     {
@@ -67,9 +68,14 @@ public class ChatCommandAnalyzer
                 this.HasSetCategory = true;
                 this.Category = parameters[i + 1];
             }
+
+            if (parameters[i].ToLower() == "-reset")
+            {
+                this.HasReset = true;
+            }
         }
 
-        if (!this.HasSetRunner && !this.HasSetGame && ! this.HasSetCategory)
+        if (!this.HasSetRunner && !this.HasSetGame && !this.HasSetCategory && !this.HasReset)
         {
             if (this.Command == ChatCommands.Wr) //only game and category parameters
             {

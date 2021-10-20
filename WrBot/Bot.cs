@@ -92,11 +92,16 @@ public class Bot
         var channelSettings = this.Settings.Channels.First(c => c.Name.Equals(e.ChatMessage.Channel, StringComparison.InvariantCultureIgnoreCase));
         if(e.ChatMessage.IsBroadcaster || e.ChatMessage.IsModerator)
         {
+            if (this.ChatCommandAnalyzer.HasReset)
+            {
+                channelSettings.Runner.Reset();
+                channelSettings.Game.Reset();
+                channelSettings.Category.Reset();
+            }
+
             channelSettings.Runner.Set(this.ChatCommandAnalyzer.HasSetRunner, this.ChatCommandAnalyzer.Runner);
             channelSettings.Game.Set(this.ChatCommandAnalyzer.HasSetGame, this.ChatCommandAnalyzer.Game);
             channelSettings.Category.Set(this.ChatCommandAnalyzer.HasSetCategory, this.ChatCommandAnalyzer.Category);
-
-            // TODO: method to unset the defaults
         }
 
         if (this.ChatCommandAnalyzer.Command == ChatCommands.Wr)
@@ -305,7 +310,7 @@ public class Bot
         var game = MemoryCache.Default["Game " + gameName] as Game;
         if (game == null)
         {
-            game = this.SrcApi.GetGameByName(gameName).Result.Data.First();
+            game = this.SrcApi.GetGameByName(gameName).Result.Data.FirstOrDefault();
 
             MemoryCache.Default["Game " + gameName] = game;
         }

@@ -281,5 +281,25 @@ namespace WrBotTests
             Assert.Equal(chatCommandAnalyzer.Game, gameName);
             Assert.Equal(chatCommandAnalyzer.Category, categoryName);
         }
+
+        [Fact]
+        public void When_Chat_Message_Contains_Reset_Then_HasReset_Set_To_True()
+        {
+            var chatCommandAnalyzer = new ChatCommandAnalyzer();
+
+            chatCommandAnalyzer.Analyze("!wr -reset");
+
+            Assert.True(chatCommandAnalyzer.HasReset);
+        }
+
+        [Fact]
+        public void When_Chat_Message_Does_Not_Contain_Reset_Then_HasReset_Set_To_False()
+        {
+            var chatCommandAnalyzer = new ChatCommandAnalyzer();
+
+            chatCommandAnalyzer.Analyze("!wr -setgame game");
+
+            Assert.False(chatCommandAnalyzer.HasReset);
+        }
     }
 }

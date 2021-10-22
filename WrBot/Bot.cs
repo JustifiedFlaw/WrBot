@@ -82,45 +82,52 @@ public class Bot
 
     private void TwitchClient_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
-        this.ChatCommandAnalyzer.Analyze(e.ChatMessage.Message);
-
-        if (e.ChatMessage.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))
+        try
         {
-            if (this.ChatCommandAnalyzer.Command == ChatCommands.JoinMe)
+            this.ChatCommandAnalyzer.Analyze(e.ChatMessage.Message);
+
+            if (e.ChatMessage.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))
             {
-                JoinChannel(e.ChatMessage.Username);
+                if (this.ChatCommandAnalyzer.Command == ChatCommands.JoinMe)
+                {
+                    JoinChannel(e.ChatMessage.Username);
+                }
+                else if(this.ChatCommandAnalyzer.Command == ChatCommands.LeaveMe)
+                {
+                    LeaveChannel(e.ChatMessage.Username);
+                }
             }
-            else if(this.ChatCommandAnalyzer.Command == ChatCommands.LeaveMe)
+            
+            var channelSettings = this.Settings.Channels.First(c => c.Name.Equals(e.ChatMessage.Channel, StringComparison.InvariantCultureIgnoreCase));
+            if(e.ChatMessage.IsBroadcaster || e.ChatMessage.IsModerator)
             {
-                LeaveChannel(e.ChatMessage.Username);
+                if (this.ChatCommandAnalyzer.HasReset)
+                {
+                    Log.Information($"Resetting defaults for channel {e.ChatMessage.Channel}");
+
+                    channelSettings.Runner.Reset();
+                    channelSettings.Game.Reset();
+                    channelSettings.Category.Reset();
+                }
+
+                channelSettings.Runner.Set(this.ChatCommandAnalyzer.HasSetRunner, this.ChatCommandAnalyzer.Runner);
+                channelSettings.Game.Set(this.ChatCommandAnalyzer.HasSetGame, this.ChatCommandAnalyzer.Game);
+                channelSettings.Category.Set(this.ChatCommandAnalyzer.HasSetCategory, this.ChatCommandAnalyzer.Category);
             }
-        }
-        
-        var channelSettings = this.Settings.Channels.First(c => c.Name.Equals(e.ChatMessage.Channel, StringComparison.InvariantCultureIgnoreCase));
-        if(e.ChatMessage.IsBroadcaster || e.ChatMessage.IsModerator)
-        {
-            if (this.ChatCommandAnalyzer.HasReset)
+
+            if (this.ChatCommandAnalyzer.Command == ChatCommands.Wr)
             {
-                Log.Information($"Resetting defaults for channel {e.ChatMessage.Channel}");
-
-                channelSettings.Runner.Reset();
-                channelSettings.Game.Reset();
-                channelSettings.Category.Reset();
+                GetWr(channelSettings);
             }
-
-            channelSettings.Runner.Set(this.ChatCommandAnalyzer.HasSetRunner, this.ChatCommandAnalyzer.Runner);
-            channelSettings.Game.Set(this.ChatCommandAnalyzer.HasSetGame, this.ChatCommandAnalyzer.Game);
-            channelSettings.Category.Set(this.ChatCommandAnalyzer.HasSetCategory, this.ChatCommandAnalyzer.Category);
+            else if(this.ChatCommandAnalyzer.Command == ChatCommands.Pb)
+            {
+                GetPb(channelSettings);
+            }  
         }
-
-        if (this.ChatCommandAnalyzer.Command == ChatCommands.Wr)
+        catch (Exception ex)
         {
-            GetWr(channelSettings);
-        }
-        else if(this.ChatCommandAnalyzer.Command == ChatCommands.Pb)
-        {
-            GetPb(channelSettings);
-        }   
+            Log.Error(ex.Message);
+        } 
     }
 
     private void JoinChannel(string username)

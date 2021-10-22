@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using Serilog;
+using Serilog.Sinks.SystemConsole;
 
 namespace WrBot
 {
@@ -12,6 +14,13 @@ namespace WrBot
         static void Main(string[] args)
         {
             LoadAppSettings();
+
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.File($"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}wrbot.log",
+                    restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information,
+                    rollingInterval: RollingInterval.Day)
+                .WriteTo.Console(Serilog.Events.LogEventLevel.Verbose)
+                .CreateLogger();
 
             var bot = new Bot(AppSettings.BotSettings);
             bot.OnJoinedChannel += Bot_OnJoinedChannel;
@@ -24,7 +33,7 @@ namespace WrBot
                 channelSettings.Category.OnSetDefaultChanged += DefaultValue_Changed;
             }
 
-            Console.WriteLine("Listening to " + string.Join(", ", AppSettings.BotSettings.Channels.Select(c => c.Name)));
+            Log.Information("Listening to " + string.Join(", ", AppSettings.BotSettings.Channels.Select(c => c.Name)));
             Console.WriteLine("Type 'quit' to close the WrBot");
             
             while (Console.ReadLine() != "quit");

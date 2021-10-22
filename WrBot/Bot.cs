@@ -6,6 +6,7 @@ using RestEase;
 using RestEase.Interfaces;
 using RestEase.Models.Src;
 using RestEase.Models.TwitchApi;
+using Serilog;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
@@ -55,7 +56,7 @@ public class Bot
         client.Initialize(credentials, this.Settings.Channels.Select(c => c.Name).ToList());
 
         client.OnMessageReceived += TwitchClient_OnMessageReceived;
-        // client.OnLog += TwitchClient_OnLog;
+        client.OnLog += TwitchClient_OnLog;
 
         client.Connect();
 
@@ -67,14 +68,20 @@ public class Bot
         return client;
     }
 
-    // private void TwitchClient_OnLog(object sender, OnLogArgs e)
-    // {
-    // }
+    private void TwitchClient_OnLog(object sender, OnLogArgs e)
+    {
+        if (e.Data.Contains("NOTICE"))
+        {
+            Log.Warning(e.Data);
+        }
+        else
+        {
+            Log.Debug(e.Data);
+        }
+    }
 
     private void TwitchClient_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
-        // TODO: log use
-
         this.ChatCommandAnalyzer.Analyze(e.ChatMessage.Message);
 
         if (e.ChatMessage.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))
@@ -94,6 +101,8 @@ public class Bot
         {
             if (this.ChatCommandAnalyzer.HasReset)
             {
+                Log.Information($"Resetting defaults for channel {e.ChatMessage.Channel}");
+
                 channelSettings.Runner.Reset();
                 channelSettings.Game.Reset();
                 channelSettings.Category.Reset();
@@ -116,6 +125,8 @@ public class Bot
 
     private void JoinChannel(string username)
     {
+        Log.Information($"Joining channel {username}");
+
         this.TwitchClient.JoinChannel(username);
 
         if(this.OnJoinedChannel != null)
@@ -131,6 +142,8 @@ public class Bot
 
     private void LeaveChannel(string username)
     {
+        Log.Information($"Leaving channel {username}");
+
         this.TwitchClient.LeaveChannel(username);
 
         if(this.OnLeftChannel != null)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
+using System.Timers;
 using RestEase;
 using RestEase.Interfaces;
 using RestEase.Models.Src;
@@ -25,6 +26,8 @@ public class Bot
 
     public ChatCommandAnalyzer ChatCommandAnalyzer { get; private set; }
 
+    public Timer KeepTwitchConnectionAlive { get; set; }
+
     public EventHandler<OnBotJoinedChannelArgs> OnJoinedChannel;
     public EventHandler<OnBotLeftChannelArgs> OnLeftChannel;
 
@@ -41,6 +44,10 @@ public class Bot
         this.TwitchClient = InitializeTwitchClient();
 
         this.ChatCommandAnalyzer = new ChatCommandAnalyzer();
+
+        this.KeepTwitchConnectionAlive = new Timer(this.Settings.KeepAlive);
+        this.KeepTwitchConnectionAlive.Elapsed += KeepTwitchConnectionAlive_Elapsed;
+        this.KeepTwitchConnectionAlive.Start();
     }
 
     private TwitchClient InitializeTwitchClient()
@@ -61,7 +68,7 @@ public class Bot
         client.OnLog += TwitchClient_OnLog;
         client.OnDisconnected += TwitchClient_OnDisconnected;
 
-        client.Connect(); // TODO: keep alive
+        client.Connect();
 
         foreach (var channelSettings in this.Settings.Channels)
         {
@@ -69,6 +76,11 @@ public class Bot
         }
 
         return client;
+    }
+
+    private void KeepTwitchConnectionAlive_Elapsed(object sender, ElapsedEventArgs e)
+    {
+        this.TwitchClient.SendRaw("PING");
     }
 
     private void TwitchClient_OnDisconnected(object sender, OnDisconnectedEventArgs e)
@@ -329,6 +341,7 @@ public class Bot
                     : streamTitle
             );
 
+        // TODO: cache with game + category 
         var category = MemoryCache.Default["Category " + categorySearch] as Category;
         if(category == null)
         {

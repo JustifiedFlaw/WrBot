@@ -11,6 +11,7 @@ using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
+using TwitchLib.Communication.Events;
 using TwitchLib.Communication.Models;
 
 public class Bot
@@ -58,6 +59,7 @@ public class Bot
 
         client.OnMessageReceived += TwitchClient_OnMessageReceived;
         client.OnLog += TwitchClient_OnLog;
+        client.OnDisconnected += TwitchClient_OnDisconnected;
 
         client.Connect(); // TODO: keep alive
 
@@ -67,6 +69,25 @@ public class Bot
         }
 
         return client;
+    }
+
+    private void TwitchClient_OnDisconnected(object sender, OnDisconnectedEventArgs e)
+    {
+        if (!this.TwitchClient.IsConnected)
+        {
+            Log.Information("Twitch client disconnected. Attempting to reconnect...");
+
+            while (!this.TwitchClient.IsConnected)
+            {
+                this.TwitchClient.Connect();
+                System.Threading.Thread.Sleep(5000);
+            }
+
+            foreach (var channelSettings in this.Settings.Channels)
+            {
+                this.TwitchClient.JoinChannel(channelSettings.Name);
+            }
+        }
     }
 
     private void TwitchClient_OnLog(object sender, OnLogArgs e)
@@ -174,7 +195,7 @@ public class Bot
         var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title);
         if (game == null)
         {
-            this.TwitchClient.SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category or stream title. Please use \"!wr [game]\" or \"!wr -setgame [game]\"");
+            this.TwitchClient.SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category. Please use \"!wr [game]\" or \"!wr -setgame [game]\"");
             return;
         }
 

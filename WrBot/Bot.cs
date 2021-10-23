@@ -44,14 +44,15 @@ public class Bot
 
     private TwitchClient InitializeTwitchClient()
     {
-        ConnectionCredentials credentials = new ConnectionCredentials(this.Settings.BotName, this.Settings.AccessToken);
-	        var clientOptions = new ClientOptions
-                {
-                    MessagesAllowedInPeriod = 750,
-                    ThrottlingPeriod = TimeSpan.FromSeconds(30)
-                };
-        WebSocketClient customClient = new WebSocketClient(clientOptions);
+        var clientOptions = new ClientOptions
+            {
+                MessagesAllowedInPeriod = 750,
+                ThrottlingPeriod = TimeSpan.FromSeconds(30)
+            };
+        var customClient = new WebSocketClient(clientOptions);
         var client = new TwitchClient(customClient);
+
+        var credentials = new ConnectionCredentials(this.Settings.BotName, this.Settings.AccessToken);
 
         client.Initialize(credentials, this.Settings.Channels.Select(c => c.Name).ToList());
 

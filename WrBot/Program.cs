@@ -75,8 +75,14 @@ namespace WrBot
 
         private static void LoadAppSettings()
         {
-            // TODO: give obvious error when appsettings.json is missing
-            var jsonString = File.ReadAllText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "appsettings.json");
+            var filePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "appsettings.json";
+
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException(filePath);
+            }
+
+            var jsonString = File.ReadAllText(filePath);
             AppSettings = JsonConvert.DeserializeObject<AppSettings>(jsonString);
         }
 

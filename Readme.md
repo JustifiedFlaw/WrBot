@@ -29,6 +29,7 @@ For security reasons the mandatory appsettings.json file is not provided in the 
       "BotName":"ChannelOfTheBot",
       "ClientId":"",
       "AccessToken":"",
+      "KeepAlive": 300000,
       "Channels":[
          {
             "Name":"ChannelOfTheBot",

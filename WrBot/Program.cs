@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Serilog;
-using Serilog.Sinks.SystemConsole;
+using Serilog.Events;
 
 namespace WrBot
 {
@@ -16,10 +16,11 @@ namespace WrBot
             LoadAppSettings();
 
             Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
                 .WriteTo.File($"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}wrbot.log",
-                    restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information,
+                    restrictedToMinimumLevel: LogEventLevel.Information,
                     rollingInterval: RollingInterval.Day)
-                .WriteTo.Console(Serilog.Events.LogEventLevel.Verbose)
+                .WriteTo.Console(LogEventLevel.Debug)
                 .CreateLogger();
 
             var bot = new Bot(AppSettings.BotSettings);

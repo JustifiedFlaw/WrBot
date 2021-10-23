@@ -341,11 +341,9 @@ public class Bot
                     : streamTitle
             );
 
-        // TODO: cache with game + category 
-        var category = MemoryCache.Default["Category " + categorySearch] as Category;
+        var category = MemoryCache.Default[$"Category {game.Id} {categorySearch}"] as Category;
         if(category == null)
         {
-            // TODO: order by same order as speedrun.com
             var categories = this.SrcApi.GetGameCategories(game.Id).Result.Data
                 .Where(c => c.Type == "per-game");
 
@@ -356,7 +354,7 @@ public class Bot
 
             category = similarities.First().Key;
 
-            MemoryCache.Default.Set("Category " + categorySearch, category, DateTimeOffset.Now.AddHours(1));
+            MemoryCache.Default.Set($"Category {game.Id} {categorySearch}", category, DateTimeOffset.Now.AddHours(1));
         }
 
         return category;

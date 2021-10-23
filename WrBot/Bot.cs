@@ -213,7 +213,6 @@ public class Bot
 
         var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title);
 
-        // TODO: This can cause an exception with certain categories
         var runs = this.SrcApi.GetLeaderboard(game.Id, category.Id).Result.Data.Runs;
 
         if (runs.Length == 0)

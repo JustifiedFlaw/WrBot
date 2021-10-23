@@ -58,7 +58,7 @@ public class Bot
         client.OnMessageReceived += TwitchClient_OnMessageReceived;
         client.OnLog += TwitchClient_OnLog;
 
-        client.Connect();
+        client.Connect(); // TODO: keep alive
 
         foreach (var channelSettings in this.Settings.Channels)
         {

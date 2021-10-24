@@ -128,8 +128,6 @@ public class Bot
                 {
                     LeaveChannel(e.ChatMessage.Username);
                 }
-
-                //TODO: allow admin to join a specific channel
             }
             
             var channelSettings = this.Settings.Channels.First(c => c.Name.Equals(e.ChatMessage.Channel, StringComparison.InvariantCultureIgnoreCase));

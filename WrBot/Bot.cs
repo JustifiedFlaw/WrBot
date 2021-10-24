@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Timers;
-using RestEase;
-using RestEase.Interfaces;
-using RestEase.Models.Src;
-using RestEase.Models.TwitchApi;
+using SrcRestEase;
+using SrcRestEase.Models;
+using TwitchRestEase;
+using TwitchRestEase.Models;
 using Serilog;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -35,11 +35,9 @@ public class Bot
     {
         this.Settings = settings;
 
-        this.TwitchApi = RestClient.For<ITwitchApi>("https://api.twitch.tv");
-        this.TwitchApi.ClientId = settings.ClientId;
-        this.TwitchApi.Authorization = "Bearer " + settings.AccessToken;
+        this.TwitchApi = TwitchRestEase.TwitchApi.Connect(settings.ClientId, settings.AccessToken);
 
-        this.SrcApi = RestClient.For<ISrcApi>("https://www.speedrun.com/api");
+        this.SrcApi = SrcRestEase.SrcApi.Connect();
 
         this.TwitchClient = InitializeTwitchClient();
 

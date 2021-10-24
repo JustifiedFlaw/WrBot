@@ -9,3 +9,9 @@ WrBotTests/obj/
 .DS_Store
 WrBot/logs/
 WrBot/.DS_Store
+SrcGameListRefresher/bin/
+SrcGameListRefresher/obj/
+SrcRestEase/bin/
+SrcRestEase/obj/
+TwitchRestEase/bin/
+TwitchRestEase/obj/

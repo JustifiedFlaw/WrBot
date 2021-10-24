@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
-using RestEase.Models.Src;
-using RestEase.Models.TwitchApi;
+using RestEase;
+using SrcRestEase.Models;
 
-namespace RestEase.Interfaces
+namespace SrcRestEase
 {
     [BasePath("v1")]
     [Header("User-Agent", "RestEase")]

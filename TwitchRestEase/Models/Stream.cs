@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace RestEase.Models.TwitchApi
+namespace TwitchRestEase.Models
 {
     public class Stream
     {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RestEase.Models.TwitchApi
+namespace TwitchRestEase.Models
 {
     public class Streams
     {

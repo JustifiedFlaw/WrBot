@@ -1,4 +1,4 @@
-namespace RestEase.Models.Src
+namespace SrcRestEase.Models
 {
     public class Game
     {

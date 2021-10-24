@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace RestEase.Models.Src
+namespace SrcRestEase.Models
 {
     public class Times
     {

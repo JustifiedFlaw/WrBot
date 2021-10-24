@@ -1,6 +1,6 @@
-namespace RestEase.Models.Src
+namespace SrcRestEase.Models
 {
-    public class UserNames
+    public class GameNames
     {
         public string International { get; set; }
     }

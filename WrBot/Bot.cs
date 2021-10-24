@@ -166,38 +166,38 @@ public class Bot
         } 
     }
 
-    private void JoinChannel(string username)
+    public void JoinChannel(string channel)
     {
-        Log.Information($"Joining channel {username}");
+        Log.Information($"Joining channel {channel}");
 
-        this.TwitchClient.JoinChannel(username);
+        this.TwitchClient.JoinChannel(channel);
 
         if(this.OnJoinedChannel != null)
         {
             this.OnJoinedChannel.Invoke(this, new OnBotJoinedChannelArgs
             {
-                Channel = username
+                Channel = channel
             });
         }
         
-        TwitchClient.SendMessage(this.Settings.BotName, $"Joined {username}");
+        TwitchClient.SendMessage(this.Settings.BotName, $"Joined {channel}");
     }
 
-    private void LeaveChannel(string username)
+    public void LeaveChannel(string channel)
     {
-        Log.Information($"Leaving channel {username}");
+        Log.Information($"Leaving channel {channel}");
 
-        this.TwitchClient.LeaveChannel(username);
+        this.TwitchClient.LeaveChannel(channel);
 
         if(this.OnLeftChannel != null)
         {
             this.OnLeftChannel.Invoke(this, new OnBotLeftChannelArgs
             {
-                Channel = username
+                Channel = channel
             });
         }
 
-        TwitchClient.SendMessage(this.Settings.BotName, $"Left {username}");
+        TwitchClient.SendMessage(this.Settings.BotName, $"Left {channel}");
     }
 
     private void GetWr(ChannelSettings channelSettings)

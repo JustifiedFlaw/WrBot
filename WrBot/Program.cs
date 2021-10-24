@@ -10,6 +10,7 @@ namespace WrBot
     class Program
     {
         static AppSettings AppSettings;
+        static Bot Bot;
 
         static void Main(string[] args)
         {
@@ -23,9 +24,9 @@ namespace WrBot
                 .WriteTo.Console(LogEventLevel.Debug)
                 .CreateLogger();
 
-            var bot = new Bot(AppSettings.BotSettings);
-            bot.OnJoinedChannel += Bot_OnJoinedChannel;
-            bot.OnLeftChannel += Bot_OnLeftChannel;
+            Bot = new Bot(AppSettings.BotSettings);
+            Bot.OnJoinedChannel += Bot_OnJoinedChannel;
+            Bot.OnLeftChannel += Bot_OnLeftChannel;
 
             foreach (var channelSettings in AppSettings.BotSettings.Channels)
             {
@@ -36,8 +37,8 @@ namespace WrBot
 
             Log.Information("Listening to " + string.Join(", ", AppSettings.BotSettings.Channels.Select(c => c.Name)));
             Console.WriteLine("Type 'quit' to close the WrBot");
-            
-            while (Console.ReadLine() != "quit");
+
+            HandleConsoleCommands();
         }
 
         private static void DefaultValue_Changed(object sender, OnSetDefaultChangedArgs e)
@@ -92,6 +93,47 @@ namespace WrBot
             File.WriteAllText(
                 Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "appsettings.json",
                 jsonString);
+        }
+
+        private static void HandleConsoleCommands()
+        {
+            var consoleAnalyzer = new ConsoleAnalyzer();
+
+            do
+            {
+                consoleAnalyzer.Analyze(Console.ReadLine());
+
+                if (consoleAnalyzer.Command == ConsoleCommands.Join)
+                {
+                    if (consoleAnalyzer.HasChannel)
+                    {
+                        Bot.JoinChannel(consoleAnalyzer.Channel);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Expected syntax: join channel");
+                    }
+                }
+
+                if (consoleAnalyzer.Command == ConsoleCommands.Leave)
+                {
+                    if (consoleAnalyzer.HasChannel)
+                    {
+                        if (consoleAnalyzer.Channel.Equals(AppSettings.BotSettings.BotName, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            Console.WriteLine("You cannot leave the bot's own channel");
+                        }
+                        else
+                        {
+                            Bot.LeaveChannel(consoleAnalyzer.Channel);                        
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Expected syntax: leave channel");
+                    }
+                }
+            } while (consoleAnalyzer.Command != ConsoleCommands.Quit);
         }
     }
 }

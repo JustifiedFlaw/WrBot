@@ -22,5 +22,8 @@ namespace SrcRestEase
 
         [Get("users/{userId}/personal-bests?game={gameId}")]
         Task<GetPersonalBestsResponse> GetPersonalBests([Path] string userId, [Path] string gameId);
+
+        [Get("games?_bulk=yes&max={max}&offset={offset}")]
+        Task<GetGamesResponse> GetGames([Path] int max, [Path] int offset);
     }
 }

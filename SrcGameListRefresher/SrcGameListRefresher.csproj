@@ -5,4 +5,7 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SrcRestEase\SrcRestEase.csproj" />
+  </ItemGroup>
 </Project>

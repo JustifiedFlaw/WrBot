@@ -176,6 +176,7 @@ public class Bot
             });
         }
         
+        // TODO: log each send message
         TwitchClient.SendMessage(this.Settings.BotName, $"Joined {channel}");
     }
 

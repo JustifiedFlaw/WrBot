@@ -228,7 +228,7 @@ public class Bot
         }
         else if(runs.Length > 0)
         {
-            var runnerNames = string.Join(", ", runs.SelectMany(r => r.Run.Players.Select(p => GetRunner(p.Id).Names.International)));
+            var runnerNames = string.Join(", ", runs.SelectMany(r => r.Run.Players.Select(p => p.Name ?? GetRunner(p.Id).Names.International)));
 
             SendMessage(channelSettings.Name, $"World record for {game.Names.International} {category.Name} is {runs[0].Run.Times.PrimaryTimeSpan.Format()} by {runnerNames}");
         }

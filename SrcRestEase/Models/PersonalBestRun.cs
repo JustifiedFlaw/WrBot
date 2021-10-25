@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace SrcRestEase.Models
@@ -8,5 +9,7 @@ namespace SrcRestEase.Models
         public string CategoryId { get; set; }
 
         public Times Times { get; set; }
+
+        public Dictionary<string,string> Values { get; set; }
     }
 }

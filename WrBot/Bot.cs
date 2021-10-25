@@ -266,9 +266,9 @@ public class Bot
         var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title);
 
         var personalBests = this.SrcApi.GetPersonalBests(runner.Id, game.Id).Result.Data
-            .Where(pb => pb.Run.CategoryId.Equals(category.CategoryId, StringComparison.InvariantCultureIgnoreCase));
-
-        // TODO: get with variable
+            .Where(pb => pb.Run.CategoryId.Equals(category.CategoryId, StringComparison.InvariantCultureIgnoreCase)
+                && (!category.HasVariable
+                    || pb.Run.Values[category.VariableId] == category.VariableValueId));
 
         if (personalBests.Count() == 0)
         {

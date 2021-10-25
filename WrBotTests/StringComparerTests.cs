@@ -7,6 +7,7 @@ namespace WrBotTests
         [Theory]
         [InlineData("beat", "Beat the game glitchless", "All emeralds glitchless")]
         [InlineData("beat glitchless", "Beat the game glitchless", "All emeralds glitchless")]
+        [InlineData("beat glitchless", "Beat the game glitchless", "All emeralds glitched")]
         [InlineData("beat the game glitchless", "Beat the game glitchless", "All emeralds glitchless")]
         [InlineData("game glitchless", "Beat the game glitchless", "All emeralds glitchless")]
         [InlineData("beat the game - glitchless", "Beat the game glitchless", "All emeralds glitchless")]

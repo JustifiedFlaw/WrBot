@@ -4,7 +4,7 @@ internal class CategoryVariable
     public string CategoryName { get; internal set; }
     public string VariableId { get; internal set; } = null;
     public string VariableValueId { get; internal set; } = null;
-    public string VariableValueName { get; internal set; }
+    public string VariableValueName { get; internal set; } = null;
 
     public string FullName
     {

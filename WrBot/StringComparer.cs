@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 
 public static class StringComparer
 {
-    // TODO: "beat glitchless" matches more with "All emeralds glitchless" then "Beat the game glitchless"
     public static decimal PercentWordMatch(string source, string target)
     {
         var sourceWords = Regex.Split(source.ToLower(), @"\s");
@@ -21,7 +20,15 @@ public static class StringComparer
 
                     var wordMatch = (decimal)(sourceWord.Length - distance) / (decimal)sourceWord.Length;
 
-                    percentMatch += wordWorth * wordMatch;
+                    if (wordMatch > 0)
+                    {
+                        percentMatch += wordWorth * wordMatch;
+
+                        if (wordMatch > 0.75m)
+                        {
+                            break;
+                        }                      
+                    }
                 }
             }
         }

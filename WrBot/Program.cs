@@ -11,6 +11,7 @@ namespace WrBot
     {
         static AppSettings AppSettings;
         static Bot Bot;
+        static GamesListRefresher GamesListRefresher;
 
         static void Main(string[] args)
         {
@@ -34,6 +35,8 @@ namespace WrBot
                 channelSettings.Game.OnSetDefaultChanged += DefaultValue_Changed;
                 channelSettings.Category.OnSetDefaultChanged += DefaultValue_Changed;
             }
+
+            GamesListRefresher = new GamesListRefresher(AppSettings.GamesListRefresherSettings);
 
             Log.Information("Listening to " + string.Join(", ", AppSettings.BotSettings.Channels.Select(c => c.Name)));
             Console.WriteLine("Type 'quit' to close the WrBot");

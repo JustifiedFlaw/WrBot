@@ -25,6 +25,9 @@
 For security reasons the mandatory appsettings.json file is not provided in the source code. If you want to run this bot on your machine you will need to create it. Here is the structure it should have:
 ````json
 {
+  "GamesListRefresherSettings": {
+    "DelayInMilliseconds": 86400000
+  },
    "BotSettings":{
       "BotName":"ChannelOfTheBot",
       "ClientId":"",

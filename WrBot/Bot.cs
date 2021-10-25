@@ -106,7 +106,13 @@ public class Bot
         {
             Log.Warning(e.Data);
         }
-        else
+        else if (e.Data.Contains(" PRIVMSG "))
+        {
+            Log.Verbose(e.Data);
+        }
+        else if(!e.Data.Contains(" PART ")
+            && !e.Data.Contains(" JOIN ")
+            && !e.Data.Contains(" USERSTATE "))
         {
             Log.Debug(e.Data);
         }
@@ -117,6 +123,11 @@ public class Bot
         try
         {
             this.ChatCommandAnalyzer.Analyze(e.ChatMessage.Message);
+
+            if (this.ChatCommandAnalyzer.Command != ChatCommands.None)
+            {
+                Log.Information($"#{e.ChatMessage.Channel} {e.ChatMessage.Username} says: {e.ChatMessage.Message}");
+            }
 
             if (e.ChatMessage.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -135,8 +146,6 @@ public class Bot
             {
                 if (this.ChatCommandAnalyzer.HasReset)
                 {
-                    Log.Information($"Resetting defaults for channel {e.ChatMessage.Channel}");
-
                     channelSettings.Runner.Reset();
                     channelSettings.Game.Reset();
                     channelSettings.Category.Reset();
@@ -158,14 +167,18 @@ public class Bot
         }
         catch (Exception ex)
         {
-            Log.Error(ex.Message);
+            Log.Error(ex.Message + "\n" + ex.StackTrace);
         } 
+    }
+
+    private void SendMessage(string channel, string message)
+    {
+        Log.Information($"Replied: #{channel} {message}");
+        this.TwitchClient.SendMessage(channel, message);
     }
 
     public void JoinChannel(string channel)
     {
-        Log.Information($"Joining channel {channel}");
-
         this.TwitchClient.JoinChannel(channel);
 
         if(this.OnJoinedChannel != null)
@@ -176,14 +189,11 @@ public class Bot
             });
         }
         
-        // TODO: log each send message
-        TwitchClient.SendMessage(this.Settings.BotName, $"Joined {channel}");
+        SendMessage(this.Settings.BotName, $"Joined {channel}");
     }
 
     public void LeaveChannel(string channel)
     {
-        Log.Information($"Leaving channel {channel}");
-
         this.TwitchClient.LeaveChannel(channel);
 
         if(this.OnLeftChannel != null)
@@ -194,7 +204,7 @@ public class Bot
             });
         }
 
-        TwitchClient.SendMessage(this.Settings.BotName, $"Left {channel}");
+        SendMessage(this.Settings.BotName, $"Left {channel}");
     }
 
     private void GetWr(ChannelSettings channelSettings)
@@ -204,7 +214,7 @@ public class Bot
         var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title);
         if (game == null)
         {
-            this.TwitchClient.SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category. Please use \"!wr [game]\" or \"!wr -setgame [game]\"");
+            SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category. Please use \"!wr [game]\" or \"!wr -setgame [game]\"");
             return;
         }
 
@@ -214,13 +224,13 @@ public class Bot
 
         if (runs.Length == 0)
         {
-            this.TwitchClient.SendMessage(channelSettings.Name, $"There are no registered runs for {game.Names.International} {category.Name}");   
+            SendMessage(channelSettings.Name, $"There are no registered runs for {game.Names.International} {category.Name}");   
         }
         else if(runs.Length > 0)
         {
             var runnerNames = string.Join(", ", runs.SelectMany(r => r.Run.Players.Select(p => GetRunner(p.Id).Names.International)));
 
-            this.TwitchClient.SendMessage(channelSettings.Name, $"World record for {game.Names.International} {category.Name} is {runs[0].Run.Times.PrimaryTimeSpan.Format()} by {runnerNames}");
+            SendMessage(channelSettings.Name, $"World record for {game.Names.International} {category.Name} is {runs[0].Run.Times.PrimaryTimeSpan.Format()} by {runnerNames}");
         }
     }
 
@@ -237,7 +247,7 @@ public class Bot
         var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title);
         if (game == null)
         {
-            this.TwitchClient.SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category or stream title. Please use \"!pb [runner] [game] [category]\" or \"!pb -setgame [game]\"");
+            SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category or stream title. Please use \"!pb [runner] [game] [category]\" or \"!pb -setgame [game]\"");
             return;
         }
 
@@ -247,12 +257,12 @@ public class Bot
             .Where(pb => pb.Run.CategoryId.Equals(category.Id, StringComparison.InvariantCultureIgnoreCase));
         if (personalBests.Count() == 0)
         {
-            this.TwitchClient.SendMessage(channelSettings.Name, $"No personal bests were found for {runner.Names.International} in {game.Names.International} {category.Name}");
+            SendMessage(channelSettings.Name, $"No personal bests were found for {runner.Names.International} in {game.Names.International} {category.Name}");
             return;
         }
         var pb = personalBests.First();
 
-        this.TwitchClient.SendMessage(channelSettings.Name, $"{runner.Names.International}'s pb for {game.Names.International} {category.Name} is {pb.Run.Times.PrimaryTimeSpan.Format()} (#{pb.Place})");
+        SendMessage(channelSettings.Name, $"{runner.Names.International}'s pb for {game.Names.International} {category.Name} is {pb.Run.Times.PrimaryTimeSpan.Format()} (#{pb.Place})");
     }
 
     private Stream GetStreamInfo(string channel)
@@ -300,7 +310,7 @@ public class Bot
 
         if (runner == null)
         {
-            this.TwitchClient.SendMessage(channelName, $"The runner {runnerName} could not be found on speedrun .com. Please use \"!pb [runner]\" or \"!pb -setrunner [runner]");
+            SendMessage(channelName, $"The runner {runnerName} could not be found on speedrun .com. Please use \"!pb [runner]\" or \"!pb -setrunner [runner]");
         }
 
         return runner;

@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="RestEase" Version="1.5.5" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
 
 </Project>

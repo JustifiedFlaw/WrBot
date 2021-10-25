@@ -25,5 +25,8 @@ namespace SrcRestEase
 
         [Get("games?_bulk=yes&max={max}&offset={offset}")]
         Task<GetGamesResponse> GetGames([Path] int max, [Path] int offset);
+
+        [Get("categories/{categoryId}/variables")]
+        Task<GetCategoryVariablesResponse> GetCategoryVariables([Path] string categoryId);
     }
 }

@@ -102,7 +102,7 @@ public class Bot
 
     private void TwitchClient_OnLog(object sender, OnLogArgs e)
     {
-        if (e.Data.Contains("NOTICE"))
+        if (e.Data.Contains(" NOTICE "))
         {
             Log.Warning(e.Data);
         }

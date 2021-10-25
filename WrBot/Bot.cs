@@ -373,7 +373,10 @@ public class Bot
         {
             game = this.SrcApi.GetGameByName(gameName).Result.Data.FirstOrDefault();
 
-            MemoryCache.Default.Set("Game " + gameName, game, DateTimeOffset.Now.AddHours(1));
+            if(game != null)
+            {
+                MemoryCache.Default.Set("Game " + gameName, game, DateTimeOffset.Now.AddHours(1));
+            }
         }
 
         return game;

@@ -220,17 +220,29 @@ public class Bot
 
         var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title);
 
-        var runs = this.SrcApi.GetLeaderboard(game.Id, category.Id).Result.Data.Runs;
+        var runs = GetRuns(game, category);
 
         if (runs.Length == 0)
         {
-            SendMessage(channelSettings.Name, $"There are no registered runs for {game.Names.International} {category.Name}");   
+            SendMessage(channelSettings.Name, $"There are no registered runs for {game.Names.International} {category.FullName}");   
         }
         else if(runs.Length > 0)
         {
             var runnerNames = string.Join(", ", runs.SelectMany(r => r.Run.Players.Select(p => p.Name ?? GetRunner(p.Id).Names.International)));
 
-            SendMessage(channelSettings.Name, $"World record for {game.Names.International} {category.Name} is {runs[0].Run.Times.PrimaryTimeSpan.Format()} by {runnerNames}");
+            SendMessage(channelSettings.Name, $"World record for {game.Names.International} {category.FullName} is {runs[0].Run.Times.PrimaryTimeSpan.Format()} by {runnerNames}");
+        }
+    }
+
+    private Placement[] GetRuns(Game game, CategoryVariable category)
+    {
+        if (category.HasVariable)
+        {
+            return this.SrcApi.GetLeaderboard(game.Id, category.CategoryId, category.VariableId, category.VariableValueId).Result.Data.Runs;
+        }
+        else
+        {
+            return this.SrcApi.GetLeaderboard(game.Id, category.CategoryId).Result.Data.Runs;            
         }
     }
 
@@ -254,15 +266,18 @@ public class Bot
         var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title);
 
         var personalBests = this.SrcApi.GetPersonalBests(runner.Id, game.Id).Result.Data
-            .Where(pb => pb.Run.CategoryId.Equals(category.Id, StringComparison.InvariantCultureIgnoreCase));
+            .Where(pb => pb.Run.CategoryId.Equals(category.CategoryId, StringComparison.InvariantCultureIgnoreCase));
+
+        // TODO: get with variable
+
         if (personalBests.Count() == 0)
         {
-            SendMessage(channelSettings.Name, $"No personal bests were found for {runner.Names.International} in {game.Names.International} {category.Name}");
+            SendMessage(channelSettings.Name, $"No personal bests were found for {runner.Names.International} in {game.Names.International} {category.FullName}");
             return;
         }
         var pb = personalBests.First();
 
-        SendMessage(channelSettings.Name, $"{runner.Names.International}'s pb for {game.Names.International} {category.Name} is {pb.Run.Times.PrimaryTimeSpan.Format()} (#{pb.Place})");
+        SendMessage(channelSettings.Name, $"{runner.Names.International}'s pb for {game.Names.International} {category.FullName} is {pb.Run.Times.PrimaryTimeSpan.Format()} (#{pb.Place})");
     }
 
     private Stream GetStreamInfo(string channel)
@@ -337,7 +352,7 @@ public class Bot
         }
     }
 
-    private Category DetermineCategory(DefaultValueSettings categoryDefault, Game game, string streamTitle)
+    private CategoryVariable DetermineCategory(DefaultValueSettings categoryDefault, Game game, string streamTitle)
     {
         string categorySearch = this.ChatCommandAnalyzer.HasCategory || this.ChatCommandAnalyzer.HasSetCategory 
             ? this.ChatCommandAnalyzer.Category
@@ -347,15 +362,14 @@ public class Bot
                     : streamTitle
             );
 
-        var category = MemoryCache.Default[$"Category {game.Id} {categorySearch}"] as Category;
+        var category = MemoryCache.Default[$"Category {game.Id} {categorySearch}"] as CategoryVariable;
         if(category == null)
         {
-            var categories = this.SrcApi.GetGameCategories(game.Id).Result.Data
-                .Where(c => c.Type == "per-game");
+            var categories = GetCategoriesWithVariables(game.Id);
 
             var similarities = categories.Select(
-                c => new KeyValuePair<Category, decimal>(c, 
-                StringComparer.PercentWordMatch(c.Name, categorySearch)))
+                c => new KeyValuePair<CategoryVariable, decimal>(c, 
+                StringComparer.PercentWordMatch(c.FullName, categorySearch)))
                 .OrderByDescending(kvp => kvp.Value);
 
             category = similarities.First().Key;
@@ -364,6 +378,51 @@ public class Bot
         }
 
         return category;
+    }
+
+    private List<CategoryVariable> GetCategoriesWithVariables(string gameId)
+    {
+        var categories = this.SrcApi.GetGameCategories(gameId).Result.Data
+                .Where(c => c.Type == "per-game");
+
+        var result = new List<CategoryVariable>(categories.Count());
+
+        foreach (var category in categories)
+        {
+            var variables = this.SrcApi.GetCategoryVariables(category.Id).Result.Data
+                .Where(v => v.IsSubCategory);
+
+            if (variables.Count() > 0)
+            {
+                foreach (var variable in variables)
+                {
+                    foreach (var value in variable.Values.Values)
+                    {
+                        result.Add(new CategoryVariable
+                        {
+                            CategoryId = category.Id,
+                            CategoryName = category.Name,
+                            VariableId = variable.Id,
+                            VariableValueId = value.Key,
+                            VariableValueName = value.Value.Label
+                        });
+                    }
+                }
+            }
+            else
+            {
+                result.Add(new CategoryVariable
+                {
+                    CategoryId = category.Id,
+                    CategoryName = category.Name,
+                    VariableId = null,
+                    VariableValueId = null,
+                    VariableValueName = null
+                });
+            }
+        }
+
+        return result;
     }
 
     private Game GetGameByName(string gameName)

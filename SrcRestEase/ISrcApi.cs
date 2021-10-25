@@ -11,6 +11,9 @@ namespace SrcRestEase
         [Get("leaderboards/{gameId}/category/{categoryId}?top=1")]
         Task<GetLeaderboardResponse> GetLeaderboard([Path] string gameId, [Path] string categoryId);
 
+        [Get("leaderboards/{gameId}/category/{categoryId}?var-{variableId}={valueId}&top=1")]
+        Task<GetLeaderboardResponse> GetLeaderboard([Path] string gameId, [Path] string categoryId, [Path] string variableId, [Path] string valueId);
+
         [Get("users/{userId}")]
         Task<GetUserResponse> GetUser([Path] string userId);
 

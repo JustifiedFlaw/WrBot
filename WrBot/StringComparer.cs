@@ -24,7 +24,7 @@ public static class StringComparer
                     {
                         percentMatch += wordWorth * wordMatch;
 
-                        if (wordMatch > 0.75m)
+                        if (wordMatch > 0.5m)
                         {
                             break;
                         }                      

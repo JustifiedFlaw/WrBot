@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using SrcRestEase.Models;
 
-public static class GamesSerializer
+public static class GamesListSerializer
 {
     public static string Serialize(List<Game> games)
     {
@@ -19,8 +19,23 @@ public static class GamesSerializer
         return sb.ToString();
     }
 
-    public static IEnumerable<Game> Deserialize(string text)
+    public static Game Deserialize(string line)
     {
-        throw new NotImplementedException();
+        var spacePos = line.IndexOf(' ');
+        if (spacePos > 0)
+        {
+            return new Game
+            {
+                Id = line.Substring(0, spacePos),
+                Names = new GameNames
+                {
+                    International = line.Substring(spacePos + 1)
+                }
+            };
+        }
+        else
+        {
+            throw new FormatException($"No space found");
+        }
     }
 }

@@ -37,31 +37,20 @@ public class GamesListRefresher
             var gamesList = new List<Game>(25000);
             while (!file.EndOfStream)
             {
-                 var line = file.ReadLine();
-
-                 if (!string.IsNullOrWhiteSpace(line))
-                 {
-                    var spacePos = line.IndexOf(' ');
-                    if (spacePos > 0)
+                var line = file.ReadLine();
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    try
                     {
-                        var game = new Game
-                        {
-                            Id = line.Substring(0, spacePos),
-                            Names = new GameNames
-                            {
-                                International = line.Substring(spacePos)
-                            }
-                        };
-
-                        gamesList.Add(game);
+                        gamesList.Add(GamesListSerializer.Deserialize(line));
                     }
-                    else
+                    catch (FormatException ex)
                     {
-                        Log.Error($"Unexpected format on line {lineNumber}, no space found");
+                        Log.Error($"Unexpected format on line {lineNumber}. {ex.Message}");
                     }
-                 }
+                }
 
-                 lineNumber++;
+                lineNumber++;
             }
 
             GamesList.Data = gamesList;
@@ -86,7 +75,7 @@ public class GamesListRefresher
             GamesList.Data = GetAllGames();
 
             Log.Debug($"Serializing {GamesList.Data.Count} games");
-            var text = GamesSerializer.Serialize(GamesList.Data);
+            var text = GamesListSerializer.Serialize(GamesList.Data);
 
             Log.Debug("Saving to " + this.FilePath);
             File.WriteAllText(this.FilePath, text);

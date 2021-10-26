@@ -28,7 +28,7 @@ public class GamesListRefresher
         this.Timer.Start();
     }
 
-    private void LoadSavedData()
+    public void LoadSavedData()
     {
         if (File.Exists(this.FilePath))
         {

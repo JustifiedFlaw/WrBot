@@ -10,34 +10,88 @@ public class GamesListRefresher
 {
     public GamesListRefresherSettings Settings { get; private set; }
     private Timer Timer;
+    private string FilePath = Directory.GetCurrentDirectory() 
+                + Path.DirectorySeparatorChar 
+                + "games.txt";
 
     public GamesListRefresher(GamesListRefresherSettings settings)
     {
         this.Settings = settings;
+    }
 
-        this.Timer = new Timer(settings.DelayInMilliseconds);
+    public void Start()
+    {
+        LoadSavedData();
+
+        this.Timer = new Timer(this.Settings.DelayInMilliseconds);
         this.Timer.Elapsed += Timer_Elapsed;
         this.Timer.Start();
     }
 
+    private void LoadSavedData()
+    {
+        if (File.Exists(this.FilePath))
+        {
+            var file = File.OpenText(this.FilePath);
+            var lineNumber = 0;
+            var gamesList = new List<Game>(25000);
+            while (!file.EndOfStream)
+            {
+                 var line = file.ReadLine();
+
+                 if (!string.IsNullOrWhiteSpace(line))
+                 {
+                    var spacePos = line.IndexOf(' ');
+                    if (spacePos > 0)
+                    {
+                        var game = new Game
+                        {
+                            Id = line.Substring(0, spacePos),
+                            Names = new GameNames
+                            {
+                                International = line.Substring(spacePos)
+                            }
+                        };
+
+                        gamesList.Add(game);
+                    }
+                    else
+                    {
+                        Log.Error($"Unexpected format on line {lineNumber}, no space found");
+                    }
+                 }
+
+                 lineNumber++;
+            }
+
+            GamesList.Data = gamesList;
+        }
+        else
+        {
+            DownloadData();
+        }
+    }
+
     private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+    {
+        DownloadData();
+    }
+
+    private void DownloadData()
     {
         try
         {
             Log.Information("Getting all games from speedrun.com");
             
-            var games = GetAllGames();
+            GamesList.Data = GetAllGames();
 
-            Log.Debug($"Serializing {games.Count} games");
-            var text = GamesSerializer.Serialize(games);
+            Log.Debug($"Serializing {GamesList.Data.Count} games");
+            var text = GamesSerializer.Serialize(GamesList.Data);
 
-            var filePath = Directory.GetCurrentDirectory() 
-                + Path.DirectorySeparatorChar 
-                + "games.txt";
-            Log.Debug("Saving to " + filePath);
-            File.WriteAllText(filePath, text);
+            Log.Debug("Saving to " + this.FilePath);
+            File.WriteAllText(this.FilePath, text);
             
-            Log.Information($"Got {games.Count} games from speedrun.com");
+            Log.Information($"Got {GamesList.Data.Count} games from speedrun.com");
         }
         catch (Exception ex)
         {

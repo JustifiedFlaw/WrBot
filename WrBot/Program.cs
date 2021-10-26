@@ -37,6 +37,7 @@ namespace WrBot
             }
 
             GamesListRefresher = new GamesListRefresher(AppSettings.GamesListRefresherSettings);
+            GamesListRefresher.Start();
 
             Log.Information("Listening to " + string.Join(", ", AppSettings.BotSettings.Channels.Select(c => c.Name)));
             Console.WriteLine("Type 'quit' to close the WrBot");

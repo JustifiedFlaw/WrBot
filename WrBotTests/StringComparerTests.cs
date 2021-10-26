@@ -18,6 +18,7 @@ namespace WrBotTests
         [InlineData("berries", "All red berries", "Any%")]
         [InlineData("Any% Normal", "Any% Normal", "Any% Hard")]
         [InlineData("Any% Nrmak", "Any% Normal", "Any% Hard")]
+        [InlineData("playing dread, lets go", "Metroid Dread", "Paladins")]
         public void When_Matches_One_More_Then_The_Other_Then_Match_Is_Greater(string input, string expected, string other)
         {
             var matchExpected = StringComparer.PercentWordMatch(expected, input);

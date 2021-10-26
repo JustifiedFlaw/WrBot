@@ -14,22 +14,19 @@ public static class StringComparer
         {
             if (sourceWord.Length > 0)
             {
+                var minDistance = sourceWord.Length;
+
                 foreach (var targetWord in targetWords)
                 {
                     var distance = LevenshteinDistance(sourceWord, targetWord);
-
-                    var wordMatch = (decimal)(sourceWord.Length - distance) / (decimal)sourceWord.Length;
-
-                    if (wordMatch > 0)
+                    if (distance < minDistance)
                     {
-                        percentMatch += wordWorth * wordMatch;
-
-                        if (wordMatch > 0.5m)
-                        {
-                            break;
-                        }                      
+                        minDistance = distance;
                     }
                 }
+
+                var wordMatch = (decimal)(sourceWord.Length - minDistance) / (decimal)sourceWord.Length;
+                percentMatch += wordWorth * wordMatch;
             }
         }
 

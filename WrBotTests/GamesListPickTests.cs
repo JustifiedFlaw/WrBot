@@ -21,6 +21,8 @@ namespace WrBotTests
         [Theory]
         [InlineData("Sonic 1", "Sonic 1 (2013)")]
         [InlineData("Sonic the Hedgehog", "Sonic the Hedgehog")]
+        [InlineData("I'm playing metroid dread tonight", "Metroid Dread")]
+        [InlineData("Celeste Any% for wr", "Celeste")]
         public void When_Given_A_Title_Then_Pick_Correct_Game(string streamTitle, string expectedGameName)
         {
             var similarites = GamesList.Data?.Select(g => 

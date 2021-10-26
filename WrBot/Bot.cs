@@ -343,8 +343,19 @@ public class Bot
         
         if (gameName.ToLower() == "retro" || string.IsNullOrWhiteSpace(gameName))
         {
-            //TODO: look for game name in title
-            return null;
+            var similarites = GamesList.Data?.Select(g => 
+                new KeyValuePair<Game, decimal>(g, 
+                    StringComparer.PercentWordMatch(g.Names.International, streamTitle)))
+                .Where(kvp => kvp.Value > 50m)
+                .OrderByDescending(kvp => kvp.Value)
+                .ToList();
+            
+            if (similarites == null || similarites.Count() == 0)
+            {
+                return null;
+            }
+
+            return similarites.First().Key;
         }
         else
         {

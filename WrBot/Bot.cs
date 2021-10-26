@@ -347,8 +347,7 @@ public class Bot
                 new KeyValuePair<Game, decimal>(g, 
                     StringComparer.PercentWordMatch(g.Names.International, streamTitle)))
                 .Where(kvp => kvp.Value > 50m)
-                .OrderByDescending(kvp => kvp.Value)
-                .ToList();
+                .OrderByDescending(kvp => kvp.Value);
             
             if (similarites == null || similarites.Count() == 0)
             {

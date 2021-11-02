@@ -1,22 +1,23 @@
-internal class CategoryVariable
+using System.Collections.Generic;
+using System.Linq;
+
+public class CategoryVariable
 {
     public string CategoryId { get; internal set; }
     public string CategoryName { get; internal set; }
-    public string VariableId { get; internal set; } = null;
-    public string VariableValueId { get; internal set; } = null;
-    public string VariableValueName { get; internal set; } = null;
+    public List<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
 
     public string FullName
     {
         get 
         { 
-            if (string.IsNullOrEmpty(this.VariableValueName))
+            if (this.SubCategories.Count == 0)
             {
                 return this.CategoryName;
             }
             else
             {
-                return this.CategoryName + " " + this.VariableValueName;
+                return this.CategoryName + " " + string.Join(' ', SubCategories.Select(s => s.ValueName));
             }
         }
     }
@@ -25,8 +26,7 @@ internal class CategoryVariable
     { 
         get
         {
-            return !(string.IsNullOrEmpty(this.VariableId)
-                || string.IsNullOrEmpty(this.VariableValueId));
+            return this.SubCategories.Count > 0;
         }
     }
 }

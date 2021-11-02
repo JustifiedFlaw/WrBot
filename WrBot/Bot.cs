@@ -238,7 +238,9 @@ public class Bot
     {
         if (category.HasVariable)
         {
-            return this.SrcApi.GetLeaderboard(game.Id, category.CategoryId, category.VariableId, category.VariableValueId).Result.Data.Runs;
+            var subCategoryDictionary = category.SubCategories.ToDictionary(s => "var-" + s.Id, s => s.ValueId);
+
+            return this.SrcApi.GetLeaderboard(game.Id, category.CategoryId, subCategoryDictionary).Result.Data.Runs;
         }
         else
         {
@@ -266,9 +268,7 @@ public class Bot
         var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title);
 
         var personalBests = this.SrcApi.GetPersonalBests(runner.Id, game.Id).Result.Data
-            .Where(pb => pb.Run.CategoryId.Equals(category.CategoryId, StringComparison.InvariantCultureIgnoreCase)
-                && (!category.HasVariable
-                    || pb.Run.Values[category.VariableId] == category.VariableValueId));
+            .Where(pb => MatchRunCategory(pb, category));
 
         if (personalBests.Count() == 0)
         {
@@ -278,6 +278,25 @@ public class Bot
         var pb = personalBests.First();
 
         SendMessage(channelSettings.Name, $"{runner.Names.International}'s pb for {game.Names.International} {category.FullName} is {pb.Run.Times.PrimaryTimeSpan.Format()} (#{pb.Place})");
+    }
+
+    private bool MatchRunCategory(PersonalBest pb, CategoryVariable category)
+    {
+        if (!pb.Run.CategoryId.Equals(category.CategoryId, StringComparison.InvariantCultureIgnoreCase))
+        {
+            return false;
+        }
+
+        foreach (var subCategory in category.SubCategories)
+        {
+            if(!pb.Run.Values.ContainsKey(subCategory.Id) 
+                || pb.Run.Values[subCategory.Id] != subCategory.ValueId)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private Stream GetStreamInfo(string channel)
@@ -402,40 +421,77 @@ public class Bot
 
         foreach (var category in categories)
         {
-            var variables = this.SrcApi.GetCategoryVariables(category.Id).Result.Data
-                .Where(v => v.IsSubCategory);
+            var subCategories = this.SrcApi.GetCategoryVariables(category.Id).Result.Data
+                .Where(v => v.IsSubCategory)
+                .ToList();
 
-            if (variables.Count() > 0)
-            {
-                foreach (var variable in variables)
-                {
-                    foreach (var value in variable.Values.Values)
-                    {
-                        result.Add(new CategoryVariable
-                        {
-                            CategoryId = category.Id,
-                            CategoryName = category.Name,
-                            VariableId = variable.Id,
-                            VariableValueId = value.Key,
-                            VariableValueName = value.Value.Label
-                        });
-                    }
-                }
-            }
-            else
-            {
-                result.Add(new CategoryVariable
-                {
-                    CategoryId = category.Id,
-                    CategoryName = category.Name,
-                    VariableId = null,
-                    VariableValueId = null,
-                    VariableValueName = null
-                });
-            }
+            var flattened = GetSubCategoryCombos(category, subCategories);
+
+            result.AddRange(flattened);
         }
 
         return result;
+    }
+
+    public static IEnumerable<CategoryVariable> GetSubCategoryCombos(Category category, IEnumerable<Variable> remainingSubCategories)
+    {
+        if (remainingSubCategories.Count() == 0)
+        {
+            return new List<CategoryVariable>();
+        }
+        else if (remainingSubCategories.Count() == 1)
+        {
+            var remaining = remainingSubCategories.First();
+
+            return remaining.Values.Values.Select(v => new CategoryVariable
+            {
+                CategoryId = category.Id,
+                CategoryName = category.Name,
+                SubCategories = new List<SubCategory>
+                {
+                    new SubCategory
+                    {
+                        Id = remaining.Id,
+                        ValueId = v.Key,
+                        ValueName = v.Value.Label
+                    }
+                }
+            });
+        }
+        else
+        {
+            var current = remainingSubCategories.First();
+
+            var outputs = new List<CategoryVariable>();
+            var combos = GetSubCategoryCombos(category, remainingSubCategories.Skip(1));
+
+            foreach (var currentValue in current.Values.Values)
+            {
+                foreach (var combo in combos)
+                {
+                    var subCategory = new CategoryVariable
+                    {
+                        CategoryId = category.Id,
+                        CategoryName = category.Name,
+                        SubCategories = new List<SubCategory>
+                        {
+                            new SubCategory
+                            {
+                                Id = current.Id,
+                                ValueId = currentValue.Key,
+                                ValueName = currentValue.Value.Label
+                            }
+                        }
+                    };
+
+                    subCategory.SubCategories.AddRange(combo.SubCategories);
+
+                    outputs.Add(subCategory);
+                }
+            }
+
+            return outputs;
+        }
     }
 
     private Game GetGameByName(string gameName)

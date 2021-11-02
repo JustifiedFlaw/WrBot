@@ -20,6 +20,7 @@ namespace WrBotTests
         [InlineData("Any% Nrmak", "Any% Normal", "Any% Hard")]
         // [InlineData("playing dread, lets go", "Metroid Dread", "Paladins")] TODO
         [InlineData("I'm playing metroid dread tonight", "Metroid Dread", "Tetris'D")]
+        // [InlineData("any% major hard", "Any% No Major Glitches Hard", "Any% Unrestricted Hard")]
         public void When_Matches_One_More_Then_The_Other_Then_Match_Is_Greater(string input, string expected, string other)
         {
             var matchExpected = StringComparer.PercentWordMatch(expected, input);

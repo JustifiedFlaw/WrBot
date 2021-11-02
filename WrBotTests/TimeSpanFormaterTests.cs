@@ -12,6 +12,7 @@ namespace WrBotTests
         [InlineData(0, 0, 54, 21, 987, "54m 21s 987ms")]
         [InlineData(0, 2, 54, 21, 987, "02h 54m 21s 987ms")]
         [InlineData(1, 2, 54, 21, 987, "01d 02h 54m 21s 987ms")]
+        [InlineData(1, 2, 54, 21, 0, "01d 02h 54m 21s")]
         public void When_Formating_TimeSpan_Then_Formated_Correctly(int days, int hours, int minutes, int seconds, int milliseconds, string expected)
         {
             var timeSpan = new TimeSpan(days, hours, minutes, seconds, milliseconds);

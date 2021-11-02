@@ -5,7 +5,7 @@ public static class TimeSpanFormater
 {
     public static string Format(this TimeSpan timeSpan)
     {
-        var format = @"fff\m\s";
+        var format = @"fff\m\s"; // TODO: dont display ms if 0
 
         if (timeSpan.Seconds > 0)
         {

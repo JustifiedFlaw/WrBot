@@ -173,8 +173,19 @@ public class Bot
 
     private void SendMessage(string channel, string message)
     {
-        Log.Information($"Replied: #{channel} {message}");
-        this.TwitchClient.SendMessage(channel, message);
+        var truncated = Truncate(message, 500);
+        Log.Information($"Replied: #{channel} {truncated}");
+        this.TwitchClient.SendMessage(channel, truncated);
+    }
+
+    private string Truncate(string message, int maxLength)
+    {
+        if (message.Length > maxLength)
+        {
+            return message.Substring(0, maxLength - 3) + "...";   
+        }
+        
+        return message;
     }
 
     public void JoinChannel(string channel)
@@ -437,7 +448,15 @@ public class Bot
     {
         if (remainingSubCategories.Count() == 0)
         {
-            return new List<CategoryVariable>();
+            return new List<CategoryVariable>
+            {
+                new CategoryVariable
+                {
+                    CategoryId = category.Id,
+                    CategoryName = category.Name,
+                    SubCategories = new List<SubCategory>()
+                }
+            };
         }
         else if (remainingSubCategories.Count() == 1)
         {

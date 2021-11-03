@@ -239,10 +239,29 @@ public class Bot
         }
         else if(runs.Length > 0)
         {
-            var runnerNames = string.Join(", ", runs.SelectMany(r => r.Run.Players.Select(p => p.Name ?? GetRunner(p.Id).Names.International)));
+            var runnerNames = GetRunnerNames(runs, 5);
 
             SendMessage(channelSettings.Name, $"World record for {game.Names.International} {category.FullName} is {runs[0].Run.Times.PrimaryTimeSpan.Format()} by {runnerNames}");
         }
+    }
+
+    private string GetRunnerNames(Placement[] runs, int max)
+    {
+        var runners = runs.SelectMany(r => r.Run.Players).ToList();
+
+        string suffix;
+        if (runners.Count > max + 1)
+        {
+            suffix = $" and {runners.Count - max} others";
+            runners = runners.Take(max).ToList();
+        }
+        else
+        {
+            suffix = "";
+        }
+
+        return string.Join(", ", runners.Select(p => p.Name ?? GetRunner(p.Id).Names.International))
+            + suffix;
     }
 
     private Placement[] GetRuns(Game game, CategoryVariable category)

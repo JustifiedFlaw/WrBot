@@ -25,7 +25,12 @@ namespace WrBot
                 .WriteTo.Console(LogEventLevel.Debug)
                 .CreateLogger();
 
-            Bot = new Bot(AppSettings.BotSettings);
+            var twitchApi = TwitchRestEase.TwitchApi.Connect(AppSettings.BotSettings.ClientId, AppSettings.BotSettings.AccessToken);
+            var srcApi = SrcRestEase.SrcApi.Connect();
+            var twitchClient = TwitchClientInitializer.InitializeTwitchClient(AppSettings.BotSettings);
+            var chatCommandAnalyzer = new ChatCommandAnalyzer();
+
+            Bot = new Bot(AppSettings.BotSettings, twitchApi, srcApi, twitchClient, chatCommandAnalyzer);
             Bot.OnJoinedChannel += Bot_OnJoinedChannel;
             Bot.OnLeftChannel += Bot_OnLeftChannel;
 

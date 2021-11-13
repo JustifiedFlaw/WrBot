@@ -10,10 +10,7 @@ using TwitchRestEase.Models;
 using Serilog;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
-using TwitchLib.Client.Models;
-using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Events;
-using TwitchLib.Communication.Models;
 
 public class Bot
 {
@@ -31,49 +28,25 @@ public class Bot
     public EventHandler<OnBotJoinedChannelArgs> OnJoinedChannel;
     public EventHandler<OnBotLeftChannelArgs> OnLeftChannel;
 
-    public Bot(BotSettings settings)
+    public Bot(BotSettings settings,
+        ITwitchApi twitchApi,
+        ISrcApi srcApi,
+        TwitchClient twitchClient,
+        ChatCommandAnalyzer chatCommandAnalyzer)
     {
         this.Settings = settings;
+        this.TwitchApi = twitchApi;
+        this.SrcApi = srcApi;
+        this.TwitchClient = twitchClient;
+        this.ChatCommandAnalyzer = chatCommandAnalyzer;
 
-        this.TwitchApi = TwitchRestEase.TwitchApi.Connect(settings.ClientId, settings.AccessToken);
-
-        this.SrcApi = SrcRestEase.SrcApi.Connect();
-
-        this.TwitchClient = InitializeTwitchClient();
-
-        this.ChatCommandAnalyzer = new ChatCommandAnalyzer();
+        this.TwitchClient.OnMessageReceived += TwitchClient_OnMessageReceived;
+        this.TwitchClient.OnLog += TwitchClient_OnLog;
+        this.TwitchClient.OnDisconnected += TwitchClient_OnDisconnected;
 
         this.KeepTwitchConnectionAlive = new Timer(this.Settings.KeepAlive);
         this.KeepTwitchConnectionAlive.Elapsed += KeepTwitchConnectionAlive_Elapsed;
         this.KeepTwitchConnectionAlive.Start();
-    }
-
-    private TwitchClient InitializeTwitchClient()
-    {
-        var clientOptions = new ClientOptions
-            {
-                MessagesAllowedInPeriod = 750,
-                ThrottlingPeriod = TimeSpan.FromSeconds(30)
-            };
-        var customClient = new WebSocketClient(clientOptions);
-        var client = new TwitchClient(customClient);
-
-        var credentials = new ConnectionCredentials(this.Settings.BotName, this.Settings.AccessToken);
-
-        client.Initialize(credentials, this.Settings.Channels.Select(c => c.Name).ToList());
-
-        client.OnMessageReceived += TwitchClient_OnMessageReceived;
-        client.OnLog += TwitchClient_OnLog;
-        client.OnDisconnected += TwitchClient_OnDisconnected;
-
-        client.Connect();
-
-        foreach (var channelSettings in this.Settings.Channels)
-        {
-            client.JoinChannel(channelSettings.Name);
-        }
-
-        return client;
     }
 
     private void KeepTwitchConnectionAlive_Elapsed(object sender, ElapsedEventArgs e)

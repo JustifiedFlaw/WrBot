@@ -8,19 +8,16 @@ using SrcRestEase.Models;
 using TwitchRestEase;
 using TwitchRestEase.Models;
 using Serilog;
-using TwitchLib.Client;
 using TwitchLib.Client.Events;
+using TwitchLib.Client.Interfaces;
 using TwitchLib.Communication.Events;
 
 public class Bot
 {
     public BotSettings Settings { get; private set; }
-
     public ITwitchApi TwitchApi { get; private set; }
     public ISrcApi SrcApi { get; private set; }
-
-    public TwitchClient TwitchClient { get; private set; }
-
+    public ITwitchClient TwitchClient { get; private set; }
     public ChatCommandAnalyzer ChatCommandAnalyzer { get; private set; }
 
     public Timer KeepTwitchConnectionAlive { get; set; }
@@ -31,7 +28,7 @@ public class Bot
     public Bot(BotSettings settings,
         ITwitchApi twitchApi,
         ISrcApi srcApi,
-        TwitchClient twitchClient,
+        ITwitchClient twitchClient,
         ChatCommandAnalyzer chatCommandAnalyzer)
     {
         this.Settings = settings;
@@ -264,7 +261,7 @@ public class Bot
         var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title);
         if (game == null)
         {
-            SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category or stream title. Please use \"!pb [runner] [game] [category]\" or \"!pb -setgame [game]\"");
+            SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category. Please use \"!pb [runner] [game] [category]\" or \"!pb -setgame [game]\"");
             return;
         }
 

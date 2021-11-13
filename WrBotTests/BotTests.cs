@@ -93,7 +93,7 @@ namespace WrBotTests
             this.SrcApiMock.WhenSubCategories(category.Id, new Variable[0]);
             this.SrcApiMock.WhenWorldRecordRuns(game.Id, category.Id, run);
 
-            this.TwitchClientMock.InvokeMessageReceived(channel, "!wr");
+            this.TwitchClientMock.RaiseMessageReceived(channel, "!wr");
 
             var expectedMessage = $"World record for {game.Names.International} {category.Name} is {run.Times.PrimaryTimeSpan.Format()} by {run.Players[0].Name}";
             this.TwitchClientMock.ThenSendMessageCalled(channel, expectedMessage);
@@ -106,7 +106,7 @@ namespace WrBotTests
 
             this.TwitchApiMock.WhenStream(channel, null);
 
-            this.TwitchClientMock.InvokeMessageReceived(channel, "!wr");
+            this.TwitchClientMock.RaiseMessageReceived(channel, "!wr");
 
             var expectedMessage = "A game could not be determined from the Twitch category. Please use \"!wr [game]\" or \"!wr -setgame [game]\"";
             this.TwitchClientMock.ThenSendMessageCalled(channel, expectedMessage);

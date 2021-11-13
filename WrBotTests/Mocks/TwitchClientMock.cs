@@ -11,7 +11,7 @@ namespace WrBotTests.Mocks
 {
     public class TwitchClientMock : Mock<ITwitchClient>
     {
-        public void InvokeMessageReceived(string channel, string message, bool isModerator = false)
+        public void RaiseMessageReceived(string channel, string message, bool isModerator = false)
         {
             this.Raise(x => x.OnMessageReceived += null, new OnMessageReceivedArgs
             {

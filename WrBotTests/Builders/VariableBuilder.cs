@@ -29,7 +29,6 @@ namespace WrBotTests.Builders
             {
                 values.Add(RandomStringBuilder.Init().Build(), new VariableValuesValues 
                 {
-                    Id = RandomStringBuilder.Init().Build(),
                     Label = RandomStringBuilder.Init().Build()
                 });
             }

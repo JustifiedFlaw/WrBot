@@ -1,6 +1,4 @@
-using System;
 using SrcRestEase.Models;
-using TwitchRestEase.Models;
 using WrBotTests.Builders;
 using WrBotTests.Mocks;
 using Xunit;
@@ -9,6 +7,8 @@ namespace WrBotTests
 {
     public class BotTests
     {
+        const string Channel = "channel";
+     
         private Bot Bot;
         BotSettings Settings;
         TwitchApiMock TwitchApiMock;
@@ -28,7 +28,7 @@ namespace WrBotTests
                 {
                     new ChannelSettings
                     {
-                        Name = "channel",
+                        Name = Channel,
                         Runner = new DefaultValueSettings(),
                         Game = new DefaultValueSettings(),
                         Category = new DefaultValueSettings()
@@ -52,8 +52,6 @@ namespace WrBotTests
         [Fact]
         public void When_Asking_For_Wr_Then_Wr_For_Default_Game_Is_Returned()
         {
-            const string channel = "channel";
-
             var game = GameBuilder.Init().Build();
             var category = CategoryBuilder.Init().Build();
             var streamInfo = StreamBuilder.Init()
@@ -61,54 +59,105 @@ namespace WrBotTests
                 .Build();
             var run = RunBuilder.Init().Build();
 
-            this.TwitchApiMock.WhenStream(channel, streamInfo);
+            this.TwitchApiMock.WhenStream(Channel, streamInfo);
             this.SrcApiMock.WhenGame(game);
             this.SrcApiMock.WhenCategories(game.Id, category);
             this.SrcApiMock.WhenSubCategories(category.Id, new Variable[0]);
             this.SrcApiMock.WhenWorldRecordRuns(game.Id, category.Id, run);
 
-            this.TwitchClientMock.RaiseMessageReceived(channel, "!wr");
+            this.TwitchClientMock.RaiseMessageReceived(Channel, "!wr");
 
             var expectedMessage = $"World record for {game.Names.International} {category.Name} is {run.Times.PrimaryTimeSpan.Format()} by {run.Players[0].Name}";
-            this.TwitchClientMock.ThenSendMessageCalled(channel, expectedMessage);
+            this.TwitchClientMock.ThenSendMessageCalled(Channel, expectedMessage);
         }
 
         [Fact]
         public void When_Runner_Name_Is_Not_Returned_Then_It_Is_Queried_From_SpeedrunDotCom()
         {
+            var game = GameBuilder.Init().Build();
+            var category = CategoryBuilder.Init().Build();
+            var streamInfo = StreamBuilder.Init()
+                .WithGameName(game.Names.International)
+                .Build();
+            var run = RunBuilder.Init()
+                .WithPlayerName(null)
+                .Build();
+            var runnerName = RandomStringBuilder.Init().Build();
+
+            this.TwitchApiMock.WhenStream(Channel, streamInfo);
+            this.SrcApiMock.WhenGame(game);
+            this.SrcApiMock.WhenCategories(game.Id, category);
+            this.SrcApiMock.WhenSubCategories(category.Id, new Variable[0]);
+            this.SrcApiMock.WhenWorldRecordRuns(game.Id, category.Id, run);
+            this.SrcApiMock.WhenRunner(run.Players[0].Id, runnerName);
+
+            this.TwitchClientMock.RaiseMessageReceived(Channel, "!wr");
+
+            var expectedMessage = $"World record for {game.Names.International} {category.Name} is {run.Times.PrimaryTimeSpan.Format()} by {runnerName}";
+            this.TwitchClientMock.ThenSendMessageCalled(Channel, expectedMessage);
         }
 
         [Fact]
         public void When_Stream_Is_Offline_Then_Message_That_Game_Cannot_Be_Determined()
         {
-            const string channel = "channel";
+            this.TwitchApiMock.WhenStream(Channel, null);
 
-            this.TwitchApiMock.WhenStream(channel, null);
-
-            this.TwitchClientMock.RaiseMessageReceived(channel, "!wr");
+            this.TwitchClientMock.RaiseMessageReceived(Channel, "!wr");
 
             var expectedMessage = "A game could not be determined from the Twitch category. Please use \"!wr [game]\" or \"!wr -setgame [game]\"";
-            this.TwitchClientMock.ThenSendMessageCalled(channel, expectedMessage);
+            this.TwitchClientMock.ThenSendMessageCalled(Channel, expectedMessage);
         }
 
         [Fact]
         public void When_Asking_To_Join_Then_Channel_Is_Added()
         {
+            var message = ChatMessageBuilder.Init()
+                .WithChannel(this.Settings.BotName)
+                .WithMessage("!joinme")
+                .Build();
+
+            this.TwitchClientMock.RaiseMessageReceived(message);
+
+            this.TwitchClientMock.ThenJoinedChannel(message.Username);
         }
 
         [Fact]
         public void When_Asking_To_Join_From_Another_Channel_Than_Bot_Then_Command_Is_Ignored()
         {
+            var message = ChatMessageBuilder.Init()
+                .WithChannel(Channel)
+                .WithMessage("!joinme")
+                .Build();
+
+            this.TwitchClientMock.RaiseMessageReceived(message);
+
+            this.TwitchClientMock.ThenNotJoinedChannel(message.Username);
         }
 
         [Fact]
         public void When_Asking_To_Leave_Then_Channel_Is_Removed()
         {
+            var message = ChatMessageBuilder.Init()
+                .WithChannel(this.Settings.BotName)
+                .WithMessage("!leaveme")
+                .Build();
+
+            this.TwitchClientMock.RaiseMessageReceived(message);
+
+            this.TwitchClientMock.ThenLeaveChannel(message.Username);
         }
 
         [Fact]
         public void When_Asking_To_Leave_From_Another_Channel_Than_Bot_Then_Command_Is_Ignored()
         {
+            var message = ChatMessageBuilder.Init()
+                .WithChannel(Channel)
+                .WithMessage("!leaveme")
+                .Build();
+
+            this.TwitchClientMock.RaiseMessageReceived(message);
+
+            this.TwitchClientMock.ThenNotLeaveChannel(message.Username);
         }
 
         [Fact]

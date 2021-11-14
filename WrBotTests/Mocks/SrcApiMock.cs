@@ -53,5 +53,21 @@ namespace WrBotTests.Mocks
                     }
                 });
         }
+
+        public void WhenRunner(string id, string runnerName)
+        {
+            this.Setup(x => x.GetUser(id))
+                .ReturnsAsync(new GetUserResponse
+                {
+                    Data = new User
+                    {
+                        Id = id,
+                        Names = new UserNames
+                        {
+                            International = runnerName
+                        }
+                    }
+                });
+        }
     }
 }

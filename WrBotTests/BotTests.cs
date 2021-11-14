@@ -21,23 +21,9 @@ namespace WrBotTests
 
         public BotTests()
         {
-            this.Settings = new BotSettings
-            {
-                BotName = "Bot",
-                ClientId = "client",
-                AccessToken = "",
-                KeepAlive = 3000,
-                Channels = new ChannelSettings[]
-                {
-                    new ChannelSettings
-                    {
-                        Name = Channel,
-                        Runner = new DefaultValueSettings(),
-                        Game = new DefaultValueSettings(),
-                        Category = new DefaultValueSettings()
-                    }
-                }
-            };
+            this.Settings = BotSettingsBuilder.Init()
+                .WithChannel(Channel)
+                .Build();
             this.TwitchApiMock = new TwitchApiMock();
             this.SrcApiMock = new SrcApiMock();
             this.TwitchClientMock = new TwitchClientMock();

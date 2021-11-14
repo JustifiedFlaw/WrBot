@@ -1,5 +1,5 @@
-using System;
 using System.Linq;
+using System.Collections.Generic;
 using Moq;
 using SrcRestEase;
 using SrcRestEase.Models;
@@ -38,9 +38,25 @@ namespace WrBotTests.Mocks
                 });
         }
 
-        internal void WhenWorldRecordRuns(string gameId, string categoryId, params Run[] runs)
+        public void WhenWorldRecordRuns(string gameId, string categoryId, params Run[] runs)
         {
             this.Setup(x => x.GetLeaderboard(gameId, categoryId))
+                .ReturnsAsync(new GetLeaderboardResponse
+                {
+                    Data = new Leaderboard
+                    {
+                        Runs = runs.Select(r => new Placement
+                        {
+                            Place = 1,
+                            Run = r
+                        }).ToArray()
+                    }
+                });
+        }
+
+        public void WhenWorldRecordRuns(string gameId, string categoryId, string variableId, string valueId, params Run[] runs)
+        {
+            this.Setup(x => x.GetLeaderboard(gameId, categoryId, new Dictionary<string, string> { { "var-" + variableId, valueId } }))
                 .ReturnsAsync(new GetLeaderboardResponse
                 {
                     Data = new Leaderboard
@@ -67,6 +83,31 @@ namespace WrBotTests.Mocks
                             International = runnerName
                         }
                     }
+                });
+        }
+
+        public void WhenRunnerByName(string id, string runnerName)
+        {
+            this.Setup(x => x.GetUser(runnerName))
+                .ReturnsAsync(new GetUserResponse
+                {
+                    Data = new User
+                    {
+                        Id = id,
+                        Names = new UserNames
+                        {
+                            International = runnerName
+                        }
+                    }
+                });
+        }
+
+        public void WhenPersonalBests(User runner, string gameId, params PersonalBest[] pbs)
+        {
+            this.Setup(x => x.GetPersonalBests(runner.Id, gameId))
+                .ReturnsAsync(new GetPersonalBestsResponse
+                {
+                    Data = pbs
                 });
         }
     }

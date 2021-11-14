@@ -11,11 +11,11 @@ namespace WrBotTests.Builders
 
         string PlayerId = RandomStringBuilder.Init().Build();
         string PlayerName = RandomStringBuilder.Init().Build();
-        decimal TimeSeconds;
+        decimal PrimarySeconds;
 
         public RunBuilder()
         {
-            this.TimeSeconds = (decimal)(this.Random.Next(1, 100) 
+            this.PrimarySeconds = (decimal)(this.Random.Next(1, 100) 
                 + this.Random.NextDouble());
         }
 
@@ -31,6 +31,12 @@ namespace WrBotTests.Builders
             return this;
         }
 
+        public RunBuilder WithPrimarySeconds(decimal primarySeconds)
+        {
+            this.PrimarySeconds = primarySeconds;
+            return this;
+        }
+
         public Run Build()
         {
             return new Run
@@ -41,7 +47,7 @@ namespace WrBotTests.Builders
                 },
                 Times = new Times
                 {
-                    PrimarySeconds = this.TimeSeconds
+                    PrimarySeconds = this.PrimarySeconds
                 }
             };
         }

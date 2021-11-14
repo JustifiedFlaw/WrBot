@@ -25,6 +25,8 @@ public class Bot
     public EventHandler<OnBotJoinedChannelArgs> OnJoinedChannel;
     public EventHandler<OnBotLeftChannelArgs> OnLeftChannel;
 
+    private MemoryCache Cache = new MemoryCache("Bot");
+
     public Bot(BotSettings settings,
         ITwitchApi twitchApi,
         ISrcApi srcApi,
@@ -301,7 +303,7 @@ public class Bot
 
     private Stream GetStreamInfo(string channel)
     {
-        var streamInfo = MemoryCache.Default["Stream " + channel] as Stream;
+        var streamInfo = this.Cache["Stream " + channel] as Stream;
         if (streamInfo == null)
         {
             streamInfo = this.TwitchApi.GetStreams(channel).Result.Data.FirstOrDefault();
@@ -315,7 +317,7 @@ public class Bot
             }
             else
             {
-                MemoryCache.Default.Set("Stream " + channel, streamInfo, DateTimeOffset.Now.AddMinutes(15));
+                this.Cache.Set("Stream " + channel, streamInfo, DateTimeOffset.Now.AddMinutes(15));
             }
         }
 
@@ -394,7 +396,7 @@ public class Bot
                     : streamTitle
             );
 
-        var category = MemoryCache.Default[$"Category {game.Id} {categorySearch}"] as CategoryVariable;
+        var category = this.Cache[$"Category {game.Id} {categorySearch}"] as CategoryVariable;
         if(category == null)
         {
             var categories = GetCategoriesWithVariables(game.Id);
@@ -406,7 +408,7 @@ public class Bot
 
             category = similarities.First().Key;
 
-            MemoryCache.Default.Set($"Category {game.Id} {categorySearch}", category, DateTimeOffset.Now.AddHours(1));
+            this.Cache.Set($"Category {game.Id} {categorySearch}", category, DateTimeOffset.Now.AddHours(1));
         }
 
         return category;
@@ -504,14 +506,14 @@ public class Bot
 
     private Game GetGameByName(string gameName)
     {
-        var game = MemoryCache.Default["Game " + gameName] as Game;
+        var game = this.Cache["Game " + gameName] as Game;
         if (game == null)
         {
             game = this.SrcApi.GetGameByName(gameName).Result.Data.FirstOrDefault();
 
             if(game != null)
             {
-                MemoryCache.Default.Set("Game " + gameName, game, DateTimeOffset.Now.AddHours(1));
+                this.Cache.Set("Game " + gameName, game, DateTimeOffset.Now.AddHours(1));
             }
         }
 
@@ -520,13 +522,13 @@ public class Bot
 
     private User GetRunner(string idOrName)
     {
-        var runner = MemoryCache.Default["Runner " + idOrName] as User;
+        var runner = this.Cache["Runner " + idOrName] as User;
         if (runner == null)
         {
             try
             {
                 runner = this.SrcApi.GetUser(idOrName).Result.Data; 
-                MemoryCache.Default.Set("Runner " + idOrName, runner, DateTimeOffset.Now.AddHours(1));
+                this.Cache.Set("Runner " + idOrName, runner, DateTimeOffset.Now.AddHours(1));
             }
             catch
             {

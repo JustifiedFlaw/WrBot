@@ -5,7 +5,7 @@ using Xunit;
 
 namespace WrBotTests
 {
-    public class FlattenSubCategoriesTests
+    public class SubCategoryAdapterTests
     {
         [Fact]
         public void When_Flattening_SubCategories_Then_Flattened()
@@ -86,7 +86,7 @@ namespace WrBotTests
                 }
             };
 
-            var flattened = Bot.GetSubCategoryCombos(category, subCategories).ToList();
+            var flattened = SubCategoryAdapter.GetSubCategoryCombos(category, subCategories).ToList();
 
             Assert.Equal(8, flattened.Count);
             

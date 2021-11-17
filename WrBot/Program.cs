@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
 using SrcFacade;
-using TwitchRestEase;
+using TwitchFacade;
 
 namespace WrBot
 {

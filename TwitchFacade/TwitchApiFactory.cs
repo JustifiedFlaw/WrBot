@@ -1,6 +1,6 @@
 using RestEase;
 
-namespace TwitchRestEase
+namespace TwitchFacade
 {
     public static class TwitchApiFactory
     {

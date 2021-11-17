@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace TwitchRestEase.Models
+namespace TwitchFacade.Models
 {
     public class Streams
     {

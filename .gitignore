@@ -13,7 +13,7 @@ SrcGameListRefresher/bin/
 SrcGameListRefresher/obj/
 SrcFacade/bin/
 SrcFacade/obj/
-TwitchRestEase/bin/
-TwitchRestEase/obj/
+TwitchFacade/bin/
+TwitchFacade/obj/
 SrcGameListRefresher/games.txt
 WrBot/games.txt

@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using RestEase;
-using TwitchRestEase.Models;
+using TwitchFacade.Models;
 
-namespace TwitchRestEase
+namespace TwitchFacade
 {
     [BasePath("helix")]
     [Header("User-Agent", "RestEase")]

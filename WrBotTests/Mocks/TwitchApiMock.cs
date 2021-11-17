@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Moq;
-using TwitchRestEase;
-using TwitchRestEase.Models;
+using TwitchFacade;
+using TwitchFacade.Models;
 
 namespace WrBotTests.Mocks
 {

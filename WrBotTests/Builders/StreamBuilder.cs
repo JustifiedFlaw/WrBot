@@ -1,4 +1,4 @@
-using TwitchRestEase.Models;
+using TwitchFacade.Models;
 
 namespace WrBotTests.Builders
 {

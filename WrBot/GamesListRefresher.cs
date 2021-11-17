@@ -93,7 +93,7 @@ public class GamesListRefresher
         const int pageSize = 1000;
         int offset = 0;
 
-        var srcApi = SrcApi.Connect();
+        var srcApi = SrcApiFactory.Connect();
 
         var allGames = new List<Game>(30000);
         Game[] page;

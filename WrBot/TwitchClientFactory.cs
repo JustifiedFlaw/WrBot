@@ -5,9 +5,9 @@ using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 
-public static class TwitchClientInitializer
+public static class TwitchClientFactory
 {
-    public static TwitchClient InitializeTwitchClient(BotSettings settings)
+    public static TwitchClient Connect(BotSettings settings)
     {
         var clientOptions = new ClientOptions
             {

@@ -2,7 +2,7 @@ using RestEase;
 
 namespace SrcFacade
 {
-    public static class SrcApi
+    public static class SrcApiFactory
     {
         public static ISrcApi Connect()
         {

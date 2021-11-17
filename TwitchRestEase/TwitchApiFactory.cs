@@ -2,7 +2,7 @@ using RestEase;
 
 namespace TwitchRestEase
 {
-    public static class TwitchApi
+    public static class TwitchApiFactory
     {
         public static ITwitchApi Connect(string clientId, string accessToken)
         {

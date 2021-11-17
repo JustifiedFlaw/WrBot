@@ -4,6 +4,8 @@ using System.Linq;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
+using SrcFacade;
+using TwitchRestEase;
 
 namespace WrBot
 {
@@ -25,9 +27,9 @@ namespace WrBot
                 .WriteTo.Console(LogEventLevel.Debug)
                 .CreateLogger();
 
-            var twitchApi = TwitchRestEase.TwitchApi.Connect(AppSettings.BotSettings.ClientId, AppSettings.BotSettings.AccessToken);
-            var srcApi = SrcFacade.SrcApi.Connect();
-            var twitchClient = TwitchClientInitializer.InitializeTwitchClient(AppSettings.BotSettings);
+            var twitchApi = TwitchApiFactory.Connect(AppSettings.BotSettings.ClientId, AppSettings.BotSettings.AccessToken);
+            var srcApi = SrcApiFactory.Connect();
+            var twitchClient = TwitchClientFactory.Connect(AppSettings.BotSettings);
             var chatCommandAnalyzer = new ChatCommandAnalyzer();
 
             Bot = new Bot(AppSettings.BotSettings, twitchApi, srcApi, twitchClient, chatCommandAnalyzer);

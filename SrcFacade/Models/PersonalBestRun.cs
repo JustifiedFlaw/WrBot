@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace SrcRestEase.Models
+namespace SrcFacade.Models
 {
     public class PersonalBestRun
     {

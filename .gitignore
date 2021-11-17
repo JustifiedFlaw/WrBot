@@ -11,8 +11,8 @@ WrBot/logs/
 WrBot/.DS_Store
 SrcGameListRefresher/bin/
 SrcGameListRefresher/obj/
-SrcRestEase/bin/
-SrcRestEase/obj/
+SrcFacade/bin/
+SrcFacade/obj/
 TwitchRestEase/bin/
 TwitchRestEase/obj/
 SrcGameListRefresher/games.txt

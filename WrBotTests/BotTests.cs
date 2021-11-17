@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-using SrcRestEase.Models;
+using SrcFacade.Models;
 using WrBotTests.Builders;
 using WrBotTests.Mocks;
 

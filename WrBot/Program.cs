@@ -26,7 +26,7 @@ namespace WrBot
                 .CreateLogger();
 
             var twitchApi = TwitchRestEase.TwitchApi.Connect(AppSettings.BotSettings.ClientId, AppSettings.BotSettings.AccessToken);
-            var srcApi = SrcRestEase.SrcApi.Connect();
+            var srcApi = SrcFacade.SrcApi.Connect();
             var twitchClient = TwitchClientInitializer.InitializeTwitchClient(AppSettings.BotSettings);
             var chatCommandAnalyzer = new ChatCommandAnalyzer();
 

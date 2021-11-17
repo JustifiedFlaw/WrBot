@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using SrcRestEase.Models;
+using SrcFacade.Models;
 using Xunit;
 
 namespace WrBotTests

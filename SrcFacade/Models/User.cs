@@ -1,4 +1,4 @@
-namespace SrcRestEase.Models
+namespace SrcFacade.Models
 {
     public class User
     {

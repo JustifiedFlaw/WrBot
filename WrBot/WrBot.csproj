@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SrcRestEase\SrcRestEase.csproj" />
+    <ProjectReference Include="..\SrcFacade\SrcFacade.csproj" />
     <ProjectReference Include="..\TwitchRestEase\TwitchRestEase.csproj" />
   </ItemGroup>
 </Project>

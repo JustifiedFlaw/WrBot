@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SrcRestEase.Models;
+using SrcFacade.Models;
 
 public static class GamesListSerializer
 {

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using RestEase;
-using SrcRestEase.Models;
+using SrcFacade.Models;
 
-namespace SrcRestEase
+namespace SrcFacade
 {
     [BasePath("v1")]
     [Header("User-Agent", "RestEase")]

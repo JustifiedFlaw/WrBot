@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace SrcRestEase.Models
+namespace SrcFacade.Models
 {
     public class Variable
     {

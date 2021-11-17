@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SrcRestEase.Models
+namespace SrcFacade.Models
 {
     public class VariableValues
     {

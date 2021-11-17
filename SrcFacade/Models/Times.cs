@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace SrcRestEase.Models
+namespace SrcFacade.Models
 {
     public class Times
     {

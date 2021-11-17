@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using Moq;
-using SrcRestEase;
-using SrcRestEase.Models;
+using SrcFacade;
+using SrcFacade.Models;
 
 namespace WrBotTests.Mocks
 {

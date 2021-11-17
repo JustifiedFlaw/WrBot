@@ -1,6 +1,6 @@
 using RestEase;
 
-namespace SrcRestEase
+namespace SrcFacade
 {
     public static class SrcApi
     {

@@ -1,5 +1,5 @@
 using System;
-using SrcRestEase.Models;
+using SrcFacade.Models;
 
 namespace WrBotTests.Builders
 {

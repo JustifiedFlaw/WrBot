@@ -17,21 +17,13 @@ namespace WrBot
         static void Main(string[] args)
         {
             LoadAppSettings();
-
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.File($"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}wrbot.log",
-                    restrictedToMinimumLevel: LogEventLevel.Information,
-                    rollingInterval: RollingInterval.Day)
-                .WriteTo.Console(LogEventLevel.Debug)
-                .CreateLogger();
+            ConfigureLogs();
 
             var twitchApi = TwitchApiFactory.Connect(AppSettings.BotSettings.ClientId, AppSettings.BotSettings.AccessToken);
             var srcApi = SrcApiFactory.Connect();
             var twitchClient = TwitchClientFactory.Connect(AppSettings.BotSettings);
-            var chatCommandAnalyzer = new ChatCommandAnalyzer();
 
-            Bot = new Bot(AppSettings.BotSettings, twitchApi, srcApi, twitchClient, chatCommandAnalyzer);
+            Bot = new Bot(AppSettings.BotSettings, twitchApi, srcApi, twitchClient);
             Bot.OnJoinedChannel += Bot_OnJoinedChannel;
             Bot.OnLeftChannel += Bot_OnLeftChannel;
 
@@ -46,6 +38,32 @@ namespace WrBot
             Console.WriteLine("Type 'quit' to close the WrBot");
 
             HandleConsoleCommands();
+        }
+
+        private static void LoadAppSettings()
+        {
+            var filePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "appsettings.json";
+
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException(filePath);
+            }
+
+            var jsonString = File.ReadAllText(filePath);
+            AppSettings = JsonConvert.DeserializeObject<AppSettings>(jsonString);
+        }
+
+        private static void ConfigureLogs()
+        {
+            var fourWeeks = new System.TimeSpan(28, 0, 0);
+            Log.Logger = new LoggerConfiguration()
+                            .MinimumLevel.Verbose()
+                            .WriteTo.File($"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}wrbot.log",
+                                restrictedToMinimumLevel: LogEventLevel.Information,
+                                rollingInterval: RollingInterval.Day,
+                                retainedFileTimeLimit: fourWeeks)
+                            .WriteTo.Console(LogEventLevel.Debug)
+                            .CreateLogger();
         }
 
         private static void DefaultValue_Changed(object sender, OnSetDefaultChangedArgs e)
@@ -79,19 +97,6 @@ namespace WrBot
 
                 SaveSettings();
             }
-        }
-
-        private static void LoadAppSettings()
-        {
-            var filePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "appsettings.json";
-
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException(filePath);
-            }
-
-            var jsonString = File.ReadAllText(filePath);
-            AppSettings = JsonConvert.DeserializeObject<AppSettings>(jsonString);
         }
 
         private static void SaveSettings()

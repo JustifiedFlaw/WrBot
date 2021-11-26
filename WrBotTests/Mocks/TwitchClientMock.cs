@@ -8,23 +8,53 @@ namespace WrBotTests.Mocks
 {
     public class TwitchClientMock : Mock<ITwitchClient>
     {
-        public void RaiseMessageReceived(string channel, string message, bool isModerator = false, bool isBroadcaster = false)
+        public void RaiseChatCommandReceived(string channel, string command, params string[] parameters)
         {
-            this.RaiseMessageReceived(
-                ChatMessageBuilder.Create()
-                    .WithChannel(channel)
-                    .WithMessage(message)
-                    .WithIsModerator(isModerator)
-                    .WithIsBroadcaster(isBroadcaster)
+            var chatMessage = ChatMessageBuilder.Create()
+                .WithChannel(channel)
+                .Build();
+
+            this.RaiseChatCommandReceived(
+                ChatCommandBuilder.Create()
+                    .WithCommandText(command)
+                    .WithArgumentsAsList(parameters)
+                    .WithChatMessage(chatMessage)
                     .Build()
             );
         }
 
-        public void RaiseMessageReceived(ChatMessage chatMessage)
+        public void RaiseChatCommandReceived(string channel, bool isModerator, bool isBroadcaster, string command, params string[] parameters)
         {
-            this.Raise(x => x.OnMessageReceived += null, new OnMessageReceivedArgs
+            var chatMessage = ChatMessageBuilder.Create()
+                .WithChannel(channel)
+                .WithIsModerator(isModerator)
+                .WithIsBroadcaster(isBroadcaster)
+                .Build();
+
+            this.RaiseChatCommandReceived(
+                ChatCommandBuilder.Create()
+                    .WithCommandText(command)
+                    .WithArgumentsAsList(parameters)
+                    .WithChatMessage(chatMessage)
+                    .Build()
+            );
+        }
+
+        public void RaiseChatCommandReceived(string channel, string command, ChatMessage message)
+        {
+            this.RaiseChatCommandReceived(
+                ChatCommandBuilder.Create()
+                    .WithCommandText(command)
+                    .WithChatMessage(message)
+                    .Build()
+            );
+        }
+
+        public void RaiseChatCommandReceived(ChatCommand chatCommand)
+        {
+            this.Raise(x => x.OnChatCommandReceived += null, new OnChatCommandReceivedArgs
             {
-                ChatMessage = chatMessage
+                Command = chatCommand
             });
         }
 

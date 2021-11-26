@@ -3,6 +3,7 @@ WrBot/appsettings.json
 WrBot/.vscode/
 WrBot/bin/
 WrBot/obj/
+WrBot/.DS_Store
 WrBotTests/.vscode/
 WrBotTests/bin/
 WrBotTests/obj/

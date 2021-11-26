@@ -2,25 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
-using System.Timers;
 using SrcFacade;
 using SrcFacade.Models;
 using TwitchFacade;
 using TwitchFacade.Models;
-using Serilog;
-using TwitchLib.Client.Events;
 using TwitchLib.Client.Interfaces;
-using TwitchLib.Communication.Events;
 
-public class Bot
+public class Bot : TwitchBot
 {
-    public BotSettings Settings { get; private set; }
     public ITwitchApi TwitchApi { get; private set; }
     public ISrcApi SrcApi { get; private set; }
-    public ITwitchClient TwitchClient { get; private set; }
-    public ChatCommandAnalyzer ChatCommandAnalyzer { get; private set; }
-
-    public Timer KeepTwitchConnectionAlive { get; set; }
 
     public EventHandler<OnBotJoinedChannelArgs> OnJoinedChannel;
     public EventHandler<OnBotLeftChannelArgs> OnLeftChannel;
@@ -30,156 +21,54 @@ public class Bot
     public Bot(BotSettings settings,
         ITwitchApi twitchApi,
         ISrcApi srcApi,
-        ITwitchClient twitchClient,
-        ChatCommandAnalyzer chatCommandAnalyzer)
+        ITwitchClient twitchClient) 
+        : base(settings, twitchClient)
     {
-        this.Settings = settings;
         this.TwitchApi = twitchApi;
         this.SrcApi = srcApi;
-        this.TwitchClient = twitchClient;
-        this.ChatCommandAnalyzer = chatCommandAnalyzer;
 
-        this.TwitchClient.OnMessageReceived += TwitchClient_OnMessageReceived;
-        this.TwitchClient.OnLog += TwitchClient_OnLog;
-        this.TwitchClient.OnDisconnected += TwitchClient_OnDisconnected;
-
-        this.KeepTwitchConnectionAlive = new Timer(this.Settings.KeepAlive);
-        this.KeepTwitchConnectionAlive.Elapsed += KeepTwitchConnectionAlive_Elapsed;
-        this.KeepTwitchConnectionAlive.Start();
+        this.Commands.Add("joinme", Command_JoinMe);
+        this.Commands.Add("leaveme", Command_LeaveMe);
+        this.Commands.Add("wr", Command_Wr);
+        this.Commands.Add("pb", Command_Pb);
     }
 
-    private void KeepTwitchConnectionAlive_Elapsed(object sender, ElapsedEventArgs e)
+    private void Command_JoinMe(CommandEventArgs e)
     {
-        this.TwitchClient.SendRaw("PING");
-    }
-
-    private void TwitchClient_OnDisconnected(object sender, OnDisconnectedEventArgs e)
-    {
-        if (!this.TwitchClient.IsConnected)
+        if (e.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))
         {
-            Log.Information("Twitch client disconnected. Attempting to reconnect...");
-
-            while (!this.TwitchClient.IsConnected)
-            {
-                this.TwitchClient.Connect();
-                System.Threading.Thread.Sleep(5000);
-            }
-
-            foreach (var channelSettings in this.Settings.Channels)
-            {
-                this.TwitchClient.JoinChannel(channelSettings.Name);
-            }
+            JoinChannel(e.Username);
         }
-    }
-
-    private void TwitchClient_OnLog(object sender, OnLogArgs e)
-    {
-        if (e.Data.Contains(" NOTICE "))
-        {
-            Log.Warning(e.Data);
-        }
-        else if (e.Data.Contains(" PRIVMSG "))
-        {
-            Log.Verbose(e.Data);
-        }
-        else if(!e.Data.Contains(" PART ")
-            && !e.Data.Contains(" JOIN ")
-            && !e.Data.Contains(" USERSTATE "))
-        {
-            Log.Debug(e.Data);
-        }
-    }
-
-    private void TwitchClient_OnMessageReceived(object sender, OnMessageReceivedArgs e)
-    {
-        try
-        {
-            this.ChatCommandAnalyzer.Analyze(e.ChatMessage.Message);
-
-            if (this.ChatCommandAnalyzer.Command != ChatCommands.None)
-            {
-                Log.Information($"#{e.ChatMessage.Channel} {e.ChatMessage.Username} says: {e.ChatMessage.Message}");
-            }
-
-            if (e.ChatMessage.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))
-            {
-                if (this.ChatCommandAnalyzer.Command == ChatCommands.JoinMe)
-                {
-                    JoinChannel(e.ChatMessage.Username);
-                }
-                else if(this.ChatCommandAnalyzer.Command == ChatCommands.LeaveMe)
-                {
-                    LeaveChannel(e.ChatMessage.Username);
-                }
-            }
-            
-            var channelSettings = this.Settings.Channels.First(c => c.Name.Equals(e.ChatMessage.Channel, StringComparison.InvariantCultureIgnoreCase));
-            if(e.ChatMessage.IsBroadcaster || e.ChatMessage.IsModerator)
-            {
-                if (this.ChatCommandAnalyzer.HasReset)
-                {
-                    channelSettings.Runner.Reset();
-                    channelSettings.Game.Reset();
-                    channelSettings.Category.Reset();
-                }
-
-                channelSettings.Runner.Set(this.ChatCommandAnalyzer.HasSetRunner, this.ChatCommandAnalyzer.Runner);
-                channelSettings.Game.Set(this.ChatCommandAnalyzer.HasSetGame, this.ChatCommandAnalyzer.Game);
-                channelSettings.Category.Set(this.ChatCommandAnalyzer.HasSetCategory, this.ChatCommandAnalyzer.Category);
-            }
-
-            if (this.ChatCommandAnalyzer.Command == ChatCommands.Wr)
-            {
-                GetWr(channelSettings);
-            }
-            else if(this.ChatCommandAnalyzer.Command == ChatCommands.Pb)
-            {
-                GetPb(channelSettings);
-            }  
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex.Message + "\n" + ex.StackTrace);
-        } 
-    }
-
-    private void SendMessage(string channel, string message)
-    {
-        var truncated = Truncate(message, 500);
-        Log.Information($"Replied: #{channel} {truncated}");
-        this.TwitchClient.SendMessage(channel, truncated);
-    }
-
-    private string Truncate(string message, int maxLength)
-    {
-        if (message.Length > maxLength)
-        {
-            return message.Substring(0, maxLength - 3) + "...";   
-        }
-        
-        return message;
     }
 
     public void JoinChannel(string channel)
     {
         this.TwitchClient.JoinChannel(channel);
 
-        if(this.OnJoinedChannel != null)
+        if (this.OnJoinedChannel != null)
         {
             this.OnJoinedChannel.Invoke(this, new OnBotJoinedChannelArgs
             {
                 Channel = channel
             });
         }
-        
+
         SendMessage(this.Settings.BotName, $"Joined {channel}");
+    }
+
+    private void Command_LeaveMe(CommandEventArgs e)
+    {
+        if (e.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))
+        {
+            LeaveChannel(e.Username);
+        }
     }
 
     public void LeaveChannel(string channel)
     {
         this.TwitchClient.LeaveChannel(channel);
 
-        if(this.OnLeftChannel != null)
+        if (this.OnLeftChannel != null)
         {
             this.OnLeftChannel.Invoke(this, new OnBotLeftChannelArgs
             {
@@ -190,30 +79,90 @@ public class Bot
         SendMessage(this.Settings.BotName, $"Left {channel}");
     }
 
-    private void GetWr(ChannelSettings channelSettings)
+    private void Command_Wr(CommandEventArgs e)
     {
+        var channelSettings = GetChannelSettings(e.Channel);
+        CheckForSets(e, channelSettings);
+
         var streamInfo = GetStreamInfo(channelSettings.Name);
-        
-        var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title);
+
+        var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title, e);
         if (game == null)
         {
             SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category. Please use \"!wr [game]\" or \"!wr -setgame [game]\"");
             return;
         }
 
-        var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title);
+        var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title, e);
 
         var runs = GetRuns(game, category);
 
         if (runs.Length == 0)
         {
-            SendMessage(channelSettings.Name, $"There are no registered runs for {game.Names.International} {category.FullName}");   
+            SendMessage(channelSettings.Name, $"There are no registered runs for {game.Names.International} {category.FullName}");
         }
-        else if(runs.Length > 0)
+        else if (runs.Length > 0)
         {
             var runnerNames = GetRunnerNames(runs, 5);
 
             SendMessage(channelSettings.Name, $"World record for {game.Names.International} {category.FullName} is {runs[0].Run.Times.PrimaryTimeSpan.Format()} by {runnerNames}");
+        }
+    }
+
+    private void Command_Pb(CommandEventArgs e)
+    {
+        var channelSettings = GetChannelSettings(e.Channel);
+        CheckForSets(e, channelSettings);
+
+        var streamInfo = GetStreamInfo(channelSettings.Name);
+        
+        var runner = DetermineRunner(channelSettings.Runner, e);
+        if (runner == null)
+        {
+            return;
+        }
+
+        var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title, e);
+        if (game == null)
+        {
+            SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category. Please use \"!pb [runner] [game] [category]\" or \"!pb -setgame [game]\"");
+            return;
+        }
+
+        var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title, e);
+
+        var personalBests = this.SrcApi.GetPersonalBests(runner.Id, game.Id).Result.Data
+            .Where(pb => MatchRunCategory(pb, category));
+
+        if (personalBests.Count() == 0)
+        {
+            SendMessage(channelSettings.Name, $"No personal bests were found for {runner.Names.International} in {game.Names.International} {category.FullName}");
+            return;
+        }
+        var pb = personalBests.First();
+
+        SendMessage(channelSettings.Name, $"{runner.Names.International}'s pb for {game.Names.International} {category.FullName} is {pb.Run.Times.PrimaryTimeSpan.Format()} (#{pb.Place})");
+    }
+
+    private ChannelSettings GetChannelSettings(string channel)
+    {
+        return this.Settings.Channels.First(c => c.Name.Equals(channel, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private void CheckForSets(CommandEventArgs e, ChannelSettings channelSettings)
+    {
+        if (e.IsBroadcaster || e.IsModerator)
+        {
+            if (e.HasReset)
+            {
+                channelSettings.Runner.Reset();
+                channelSettings.Game.Reset();
+                channelSettings.Category.Reset();
+            }
+
+            channelSettings.Runner.Set(e.HasSetRunner, e.Runner);
+            channelSettings.Game.Set(e.HasSetGame, e.Game);
+            channelSettings.Category.Set(e.HasSetCategory, e.Category);
         }
     }
 
@@ -248,38 +197,6 @@ public class Bot
         {
             return this.SrcApi.GetLeaderboard(game.Id, category.CategoryId).Result.Data.Runs;            
         }
-    }
-
-    private void GetPb(ChannelSettings channelSettings)
-    {
-        var streamInfo = GetStreamInfo(channelSettings.Name);
-        
-        var runner = DetermineRunner(channelSettings.Runner, channelSettings.Name);
-        if (runner == null)
-        {
-            return;
-        }
-
-        var game = DetermineGame(channelSettings.Game, streamInfo.GameName, streamInfo.Title);
-        if (game == null)
-        {
-            SendMessage(channelSettings.Name, "A game could not be determined from the Twitch category. Please use \"!pb [runner] [game] [category]\" or \"!pb -setgame [game]\"");
-            return;
-        }
-
-        var category = DetermineCategory(channelSettings.Category, game, streamInfo.Title);
-
-        var personalBests = this.SrcApi.GetPersonalBests(runner.Id, game.Id).Result.Data
-            .Where(pb => MatchRunCategory(pb, category));
-
-        if (personalBests.Count() == 0)
-        {
-            SendMessage(channelSettings.Name, $"No personal bests were found for {runner.Names.International} in {game.Names.International} {category.FullName}");
-            return;
-        }
-        var pb = personalBests.First();
-
-        SendMessage(channelSettings.Name, $"{runner.Names.International}'s pb for {game.Names.International} {category.FullName} is {pb.Run.Times.PrimaryTimeSpan.Format()} (#{pb.Place})");
     }
 
     private bool MatchRunCategory(PersonalBest pb, CategoryVariable category)
@@ -324,14 +241,14 @@ public class Bot
         return streamInfo;
     }
 
-    private User DetermineRunner(DefaultValueSettings runnerDefault, string channelName)
+    private User DetermineRunner(DefaultValueSettings runnerDefault, CommandEventArgs e)
     {
-        string runnerName = this.ChatCommandAnalyzer.HasRunner || this.ChatCommandAnalyzer.HasSetRunner 
-            ? this.ChatCommandAnalyzer.Runner
+        string runnerName = e.HasRunner || e.HasSetRunner 
+            ? e.Runner
             : (
                 runnerDefault.Enabled 
                     ? runnerDefault.Value
-                    : channelName
+                    : e.Channel
             );
         
         User runner;
@@ -346,16 +263,16 @@ public class Bot
 
         if (runner == null)
         {
-            SendMessage(channelName, $"The runner {runnerName} could not be found on speedrun .com. Please use \"!pb [runner]\" or \"!pb -setrunner [runner]");
+            SendMessage(e.Channel, $"The runner {runnerName} could not be found on speedrun .com. Please use \"!pb [runner]\" or \"!pb -setrunner [runner]");
         }
 
         return runner;
     }
 
-    private Game DetermineGame(DefaultValueSettings gameDefault, string streamGame, string streamTitle)
+    private Game DetermineGame(DefaultValueSettings gameDefault, string streamGame, string streamTitle, CommandEventArgs e)
     {
-        string gameName = this.ChatCommandAnalyzer.HasGame || this.ChatCommandAnalyzer.HasSetGame 
-            ? this.ChatCommandAnalyzer.Game
+        string gameName = e.HasGame || e.HasSetGame 
+            ? e.Game
             : (
                 gameDefault.Enabled 
                     ? gameDefault.Value
@@ -372,10 +289,10 @@ public class Bot
         }
     }
 
-    private CategoryVariable DetermineCategory(DefaultValueSettings categoryDefault, Game game, string streamTitle)
+    private CategoryVariable DetermineCategory(DefaultValueSettings categoryDefault, Game game, string streamTitle, CommandEventArgs e)
     {
-        string categorySearch = this.ChatCommandAnalyzer.HasCategory || this.ChatCommandAnalyzer.HasSetCategory 
-            ? this.ChatCommandAnalyzer.Category
+        string categorySearch = e.HasCategory || e.HasSetCategory 
+            ? e.Category
             : (
                 categoryDefault.Enabled 
                     ? categoryDefault.Value
@@ -383,7 +300,7 @@ public class Bot
             );
 
         var category = this.Cache[$"Category {game.Id} {categorySearch}"] as CategoryVariable;
-        if(category == null)
+        if (category == null)
         {
             var categories = GetCategoriesWithVariables(game.Id);
 

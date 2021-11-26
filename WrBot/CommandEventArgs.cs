@@ -1,8 +1,14 @@
-using System.Text.RegularExpressions;
+using System;
 
-public class ChatCommandAnalyzer
+public class CommandEventArgs
 {
-    public ChatCommands Command { get; private set; }
+    public bool IsModerator { get; set; }
+    public bool IsBroadcaster { get; set;}
+    public string Username { get; set; }
+    public string Channel { get; set; }
+    public string CommandName { get; set; }
+    public string[] Parameters { get; private set; }
+
     public bool HasSetRunner { get; private set; }
     public bool HasSetGame { get; private set; }
     public bool HasSetCategory { get; private set; }
@@ -13,40 +19,11 @@ public class ChatCommandAnalyzer
     public bool HasGame { get; private set; }
     public bool HasCategory { get; private set; }
     public bool HasReset { get; private set; }
-
-    public void Analyze(string message)
+    
+    public CommandEventArgs(string commandName, string[] parameters)
     {
-        ResetDefaults();
-        
-        var commandMatch = Regex.Match(message, @"^!\w+($|\s)");
-        if (commandMatch.Success)
-        {
-            switch (commandMatch.Value.Trim())
-            {
-                case "!wr":
-                    this.Command = ChatCommands.Wr;
-                    break;
-                case "!pb":
-                    this.Command = ChatCommands.Pb;
-                    break;
-                case "!joinme":
-                    this.Command = ChatCommands.JoinMe;
-                    break;
-                case "!leaveme":
-                    this.Command = ChatCommands.LeaveMe;
-                    break;
-                default:
-                    this.Command = ChatCommands.None;
-                    break;
-            }
-        }
-
-        if (this.Command == ChatCommands.None)
-        {
-            return;
-        }
-
-        var parameters = ParameterAnalyzer.GetParameters(message);
+        this.CommandName = commandName;
+        this.Parameters = parameters;
 
         for (int i = 0; i < parameters.Length; i++)
         {
@@ -76,7 +53,7 @@ public class ChatCommandAnalyzer
 
         if (!this.HasSetRunner && !this.HasSetGame && !this.HasSetCategory && !this.HasReset)
         {
-            if (this.Command == ChatCommands.Wr) //only game and category parameters
+            if (commandName.Equals("wr", StringComparison.InvariantCultureIgnoreCase)) //only game and category parameters
             {
                 if (parameters.Length > 0)
                 {
@@ -90,7 +67,7 @@ public class ChatCommandAnalyzer
                     this.Category = parameters[1];
                 }
             }
-            else if(this.Command == ChatCommands.Pb)
+            else if(commandName.Equals("pb", StringComparison.InvariantCultureIgnoreCase))
             {
                 if (parameters.Length > 0)
                 {
@@ -111,19 +88,5 @@ public class ChatCommandAnalyzer
                 }
             }
         }
-    }
-
-    private void ResetDefaults()
-    {
-        this.Command = ChatCommands.None;
-        this.HasSetRunner = false;
-        this.HasSetGame = false;
-        this.HasSetCategory = false;
-        this.HasRunner = false;
-        this.HasGame = false;
-        this.HasCategory = false;
-        this.Runner = null;
-        this.Game = null;
-        this.Category = null;
     }
 }

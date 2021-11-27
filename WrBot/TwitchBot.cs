@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Timers;
 using Serilog;
 using TwitchLib.Client.Events;
@@ -12,6 +13,7 @@ public class TwitchBot
     public ITwitchClient TwitchClient { get; set; }
 
     private Timer KeepTwitchConnectionAlive { get; set; }
+    private Timer KeepChannelsConnected { get; set; }
     
     public TwitchBot(BotSettings settings, ITwitchClient twitchClient)
     {
@@ -23,6 +25,10 @@ public class TwitchBot
         this.KeepTwitchConnectionAlive = new Timer(this.Settings.KeepAlive);
         this.KeepTwitchConnectionAlive.Elapsed += KeepTwitchConnectionAlive_Elapsed;
         this.KeepTwitchConnectionAlive.Start();
+
+        this.KeepChannelsConnected = new Timer(this.Settings.KeepChannelsConnected);
+        this.KeepChannelsConnected.Elapsed += KeepChannelsConnected_Elapsed;
+        this.KeepChannelsConnected.Start();
     }
 
     private void ConnectTwitchClientEvents()
@@ -35,6 +41,16 @@ public class TwitchBot
     private void KeepTwitchConnectionAlive_Elapsed(object sender, ElapsedEventArgs e)
     {
         this.TwitchClient.SendRaw("PING");
+    }
+
+    private void KeepChannelsConnected_Elapsed(object sender, ElapsedEventArgs e)
+    {
+        var disconnectedChannels = this.Settings.Channels.Where(c => !this.TwitchClient.JoinedChannels.Any(j => j.Channel.EqualsIgnoreCase(c.Name)));
+        foreach (var channel in disconnectedChannels)
+        {
+            Log.Warning($"Disconnected from {channel.Name}, rejoining");
+            this.TwitchClient.JoinChannel(channel.Name);
+        }
     }
 
     private void TwitchClient_OnDisconnected(object sender, OnDisconnectedEventArgs e)

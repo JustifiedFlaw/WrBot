@@ -30,6 +30,7 @@ For security reasons the mandatory appsettings.json file is not provided in the 
       "ClientId":"",
       "AccessToken":"",
       "KeepAlive": 300000,
+      "KeepChannelsConnected": 15000,
       "Channels":[
          {
             "Name":"ChannelOfTheBot",

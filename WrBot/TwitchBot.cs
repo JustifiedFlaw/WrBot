@@ -1,3 +1,4 @@
+using System;
 using System.Timers;
 using Serilog;
 using TwitchLib.Client.Events;
@@ -83,8 +84,14 @@ public class TwitchBot
                 IsModerator = e.Command.ChatMessage.IsModerator
             };
 
-            // TODO: try
-            command.Action.Invoke(commandEventArgs);
+            try
+            {
+                command.Action.Invoke(commandEventArgs);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message + "\n" + ex.StackTrace);
+            }
         }
     }
 

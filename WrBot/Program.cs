@@ -11,36 +11,26 @@ namespace WrBot
 {
     class Program
     {
-        static AppSettings AppSettings;
-        static Bot Bot;
-
         static void Main(string[] args)
         {
-            LoadAppSettings();
             ConfigureLogs();
+            
+            var appSettings = LoadAppSettings();            
 
-            var twitchApi = TwitchApiFactory.Connect(AppSettings.BotSettings.ClientId, AppSettings.BotSettings.AccessToken);
+            var twitchApi = TwitchApiFactory.Connect(appSettings.BotSettings.ClientId, appSettings.BotSettings.AccessToken);
             var srcApi = SrcApiFactory.Connect();
-            var twitchClient = TwitchClientFactory.Connect(AppSettings.BotSettings);
+            var twitchClient = TwitchClientFactory.Connect(appSettings.BotSettings);
+            var bot = new Bot(appSettings.BotSettings, twitchApi, srcApi, twitchClient);
+            
+            var cli = new CommandLineInterpreter(appSettings, bot);
 
-            Bot = new Bot(AppSettings.BotSettings, twitchApi, srcApi, twitchClient);
-            Bot.OnJoinedChannel += Bot_OnJoinedChannel;
-            Bot.OnLeftChannel += Bot_OnLeftChannel;
-
-            foreach (var channelSettings in AppSettings.BotSettings.Channels)
-            {
-                channelSettings.Runner.OnSetDefaultChanged += DefaultValue_Changed;
-                channelSettings.Game.OnSetDefaultChanged += DefaultValue_Changed;
-                channelSettings.Category.OnSetDefaultChanged += DefaultValue_Changed;
-            }
-
-            Log.Information("Listening to " + string.Join(", ", AppSettings.BotSettings.Channels.Select(c => c.Name)));
+            Log.Information("Listening to " + string.Join(", ", appSettings.BotSettings.Channels.Select(c => c.Name)));
             Console.WriteLine("Type 'quit' to close the WrBot");
 
-            HandleConsoleCommands();
+            cli.Read();
         }
 
-        private static void LoadAppSettings()
+        private static AppSettings LoadAppSettings()
         {
             var filePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "appsettings.json";
 
@@ -50,102 +40,20 @@ namespace WrBot
             }
 
             var jsonString = File.ReadAllText(filePath);
-            AppSettings = JsonConvert.DeserializeObject<AppSettings>(jsonString);
+            return JsonConvert.DeserializeObject<AppSettings>(jsonString);
         }
 
         private static void ConfigureLogs()
         {
-            var fourWeeks = new System.TimeSpan(28, 0, 0, 0);
+            var twoWeeks = new System.TimeSpan(14, 0, 0, 0);
             Log.Logger = new LoggerConfiguration()
                             .MinimumLevel.Verbose()
                             .WriteTo.File($"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}wrbot.log",
                                 restrictedToMinimumLevel: LogEventLevel.Information,
                                 rollingInterval: RollingInterval.Day,
-                                retainedFileTimeLimit: fourWeeks)
+                                retainedFileTimeLimit: twoWeeks)
                             .WriteTo.Console(LogEventLevel.Debug)
                             .CreateLogger();
-        }
-
-        private static void DefaultValue_Changed(object sender, OnSetDefaultChangedArgs e)
-        {
-            SaveSettings();
-        }
-
-        private static void Bot_OnLeftChannel(object sender, OnBotLeftChannelArgs e)
-        {
-            if(AppSettings.BotSettings.Channels.Count(c => c.Name.EqualsIgnoreCase(e.Channel)) > 0)
-            {
-                AppSettings.BotSettings.Channels = 
-                    AppSettings.BotSettings.Channels.Where(c => !c.Name.EqualsIgnoreCase(e.Channel))
-                    .ToArray();
-
-                SaveSettings();
-            }
-        }
-
-        private static void Bot_OnJoinedChannel(object sender, OnBotJoinedChannelArgs e)
-        {
-            if(AppSettings.BotSettings.Channels.Count(c => c.Name.EqualsIgnoreCase(e.Channel)) == 0)
-            {
-                AppSettings.BotSettings.Channels = 
-                    AppSettings.BotSettings.Channels.Append(new ChannelSettings{
-                        Name = e.Channel,
-                        Runner = new DefaultValueSettings(),
-                        Game = new DefaultValueSettings(),
-                        Category = new DefaultValueSettings()
-                    }).ToArray();
-
-                SaveSettings();
-            }
-        }
-
-        private static void SaveSettings()
-        {
-            var jsonString = JsonConvert.SerializeObject(AppSettings, Formatting.Indented);
-            File.WriteAllText(
-                Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "appsettings.json",
-                jsonString);
-        }
-
-        private static void HandleConsoleCommands()
-        {
-            var consoleAnalyzer = new ConsoleAnalyzer();
-
-            do
-            {
-                consoleAnalyzer.Analyze(Console.ReadLine());
-
-                if (consoleAnalyzer.Command == ConsoleCommands.Join)
-                {
-                    if (consoleAnalyzer.HasChannel)
-                    {
-                        Bot.JoinChannel(consoleAnalyzer.Channel);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Expected syntax: join channel");
-                    }
-                }
-
-                if (consoleAnalyzer.Command == ConsoleCommands.Leave)
-                {
-                    if (consoleAnalyzer.HasChannel)
-                    {
-                        if (consoleAnalyzer.Channel.EqualsIgnoreCase(AppSettings.BotSettings.BotName))
-                        {
-                            Console.WriteLine("You cannot leave the bot's own channel");
-                        }
-                        else
-                        {
-                            Bot.LeaveChannel(consoleAnalyzer.Channel);                        
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Expected syntax: leave channel");
-                    }
-                }
-            } while (consoleAnalyzer.Command != ConsoleCommands.Quit);
         }
     }
 }

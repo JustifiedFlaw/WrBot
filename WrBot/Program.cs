@@ -73,10 +73,10 @@ namespace WrBot
 
         private static void Bot_OnLeftChannel(object sender, OnBotLeftChannelArgs e)
         {
-            if(AppSettings.BotSettings.Channels.Count(c => c.Name.Equals(e.Channel, StringComparison.InvariantCultureIgnoreCase)) > 0)
+            if(AppSettings.BotSettings.Channels.Count(c => c.Name.EqualsIgnoreCase(e.Channel)) > 0)
             {
                 AppSettings.BotSettings.Channels = 
-                    AppSettings.BotSettings.Channels.Where(c => !c.Name.Equals(e.Channel, StringComparison.InvariantCultureIgnoreCase))
+                    AppSettings.BotSettings.Channels.Where(c => !c.Name.EqualsIgnoreCase(e.Channel))
                     .ToArray();
 
                 SaveSettings();
@@ -85,7 +85,7 @@ namespace WrBot
 
         private static void Bot_OnJoinedChannel(object sender, OnBotJoinedChannelArgs e)
         {
-            if(AppSettings.BotSettings.Channels.Count(c => c.Name.Equals(e.Channel, StringComparison.InvariantCultureIgnoreCase)) == 0)
+            if(AppSettings.BotSettings.Channels.Count(c => c.Name.EqualsIgnoreCase(e.Channel)) == 0)
             {
                 AppSettings.BotSettings.Channels = 
                     AppSettings.BotSettings.Channels.Append(new ChannelSettings{
@@ -131,7 +131,7 @@ namespace WrBot
                 {
                     if (consoleAnalyzer.HasChannel)
                     {
-                        if (consoleAnalyzer.Channel.Equals(AppSettings.BotSettings.BotName, StringComparison.InvariantCultureIgnoreCase))
+                        if (consoleAnalyzer.Channel.EqualsIgnoreCase(AppSettings.BotSettings.BotName))
                         {
                             Console.WriteLine("You cannot leave the bot's own channel");
                         }

@@ -35,7 +35,7 @@ public class Bot : TwitchBot
 
     private void Command_JoinMe(CommandEventArgs e)
     {
-        if (e.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))
+        if (e.Channel.EqualsIgnoreCase(this.Settings.BotName))
         {
             JoinChannel(e.Username);
         }
@@ -58,7 +58,7 @@ public class Bot : TwitchBot
 
     private void Command_LeaveMe(CommandEventArgs e)
     {
-        if (e.Channel.Equals(this.Settings.BotName, StringComparison.InvariantCultureIgnoreCase))
+        if (e.Channel.EqualsIgnoreCase(this.Settings.BotName))
         {
             LeaveChannel(e.Username);
         }
@@ -146,7 +146,7 @@ public class Bot : TwitchBot
 
     private ChannelSettings GetChannelSettings(string channel)
     {
-        return this.Settings.Channels.First(c => c.Name.Equals(channel, StringComparison.InvariantCultureIgnoreCase));
+        return this.Settings.Channels.First(c => c.Name.EqualsIgnoreCase(channel));
     }
 
     private void CheckForSets(CommandEventArgs e, ChannelSettings channelSettings)
@@ -201,7 +201,7 @@ public class Bot : TwitchBot
 
     private bool MatchRunCategory(PersonalBest pb, CategoryVariable category)
     {
-        if (!pb.Run.CategoryId.Equals(category.CategoryId, StringComparison.InvariantCultureIgnoreCase))
+        if (!pb.Run.CategoryId.EqualsIgnoreCase(category.CategoryId))
         {
             return false;
         }

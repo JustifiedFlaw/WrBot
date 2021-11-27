@@ -53,7 +53,7 @@ public class CommandEventArgs
 
         if (!this.HasSetRunner && !this.HasSetGame && !this.HasSetCategory && !this.HasReset)
         {
-            if (commandName.Equals("wr", StringComparison.InvariantCultureIgnoreCase)) //only game and category parameters
+            if (commandName.EqualsIgnoreCase("wr")) //only game and category parameters
             {
                 if (parameters.Length > 0)
                 {
@@ -67,7 +67,7 @@ public class CommandEventArgs
                     this.Category = parameters[1];
                 }
             }
-            else if(commandName.Equals("pb", StringComparison.InvariantCultureIgnoreCase))
+            else if(commandName.EqualsIgnoreCase("pb"))
             {
                 if (parameters.Length > 0)
                 {

@@ -55,7 +55,7 @@ namespace WrBot
 
         private static void ConfigureLogs()
         {
-            var fourWeeks = new System.TimeSpan(28, 0, 0);
+            var fourWeeks = new System.TimeSpan(28, 0, 0, 0);
             Log.Logger = new LoggerConfiguration()
                             .MinimumLevel.Verbose()
                             .WriteTo.File($"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}wrbot.log",

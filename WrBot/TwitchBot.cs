@@ -76,7 +76,7 @@ public class TwitchBot
     {
         if (this.Commands.TryGetValue(e.Command.CommandText, out var command))
         {
-            Log.Information($"{e.Command.ChatMessage.Username} says: {e.Command.ChatMessage.Message}");
+            Log.Information($"Received: #{e.Command.ChatMessage.Channel} {e.Command.ChatMessage.Username} {e.Command.ChatMessage.Message}");
 
             var commandEventArgs = new CommandEventArgs(e.Command.CommandText, e.Command.ArgumentsAsList.ToArray())
             {

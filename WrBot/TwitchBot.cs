@@ -17,13 +17,18 @@ public class TwitchBot
         this.Settings = settings;
         this.TwitchClient = twitchClient;
 
-        this.TwitchClient.OnChatCommandReceived += TwitchClient_OnChatCommandReceived;
-        this.TwitchClient.OnLog += TwitchClient_OnLog;
-        this.TwitchClient.OnDisconnected += TwitchClient_OnDisconnected;
-        
+        ConnectTwitchClientEvents();
+
         this.KeepTwitchConnectionAlive = new Timer(this.Settings.KeepAlive);
         this.KeepTwitchConnectionAlive.Elapsed += KeepTwitchConnectionAlive_Elapsed;
         this.KeepTwitchConnectionAlive.Start();
+    }
+
+    private void ConnectTwitchClientEvents()
+    {
+        this.TwitchClient.OnChatCommandReceived += TwitchClient_OnChatCommandReceived;
+        this.TwitchClient.OnLog += TwitchClient_OnLog;
+        this.TwitchClient.OnDisconnected += TwitchClient_OnDisconnected;
     }
 
     private void KeepTwitchConnectionAlive_Elapsed(object sender, ElapsedEventArgs e)
@@ -37,16 +42,14 @@ public class TwitchBot
         {
             Log.Information("Twitch client disconnected. Attempting to reconnect...");
 
-            while (!this.TwitchClient.IsConnected)
+            do
             {
-                this.TwitchClient.Connect();
-                System.Threading.Thread.Sleep(5000);
-            }
+                this.TwitchClient = TwitchClientFactory.Connect(this.Settings);
+                ConnectTwitchClientEvents();
 
-            foreach (var channelSettings in this.Settings.Channels)
-            {
-                this.TwitchClient.JoinChannel(channelSettings.Name);
-            }
+                System.Threading.Thread.Sleep(5000);
+                
+            } while (!this.TwitchClient.IsConnected);
         }
     }
 
@@ -79,6 +82,8 @@ public class TwitchBot
                 IsBroadcaster = e.Command.ChatMessage.IsBroadcaster,
                 IsModerator = e.Command.ChatMessage.IsModerator
             };
+
+            // TODO: try
             command.Action.Invoke(commandEventArgs);
         }
     }

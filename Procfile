@@ -1,1 +1,1 @@
-console: dotnet run
+worker: dotnet run

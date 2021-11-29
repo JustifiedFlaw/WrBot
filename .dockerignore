@@ -1,0 +1,8 @@
+WrBot/bin/
+WrBot/obj/
+SrcFacade/bin/
+SrcFacade/obj/
+TwitchFacade/bin/
+TwitchFacade/obj/
+WrBotTests/bin/
+WrBotTests/obj/

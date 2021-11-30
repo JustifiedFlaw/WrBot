@@ -9,11 +9,13 @@ namespace WrBot
     {
         private AppSettings AppSettings;
         private Bot Bot;
+        private IChannelService ChannelService;
 
-        public CommandLineInterpreter(AppSettings appSettings, Bot bot)
+        public CommandLineInterpreter(AppSettings appSettings, Bot bot, IChannelService channelService)
         {
             this.AppSettings = appSettings;
             this.Bot = bot;
+            this.ChannelService = channelService;
 
             Bot.OnJoinedChannel += Bot_OnJoinedChannel;
             Bot.OnLeftChannel += Bot_OnLeftChannel;
@@ -28,7 +30,8 @@ namespace WrBot
 
         private void DefaultValue_Changed(object sender, OnSetDefaultChangedArgs e)
         {
-            SaveSettings();
+            var channel = AppSettings.BotSettings.Channels.First(c => c.Name.EqualsIgnoreCase(e.Channel));
+            ChannelService.Update(channel);
         }
 
         private void Bot_OnLeftChannel(object sender, OnBotLeftChannelArgs e)
@@ -39,7 +42,7 @@ namespace WrBot
                     AppSettings.BotSettings.Channels.Where(c => !c.Name.EqualsIgnoreCase(e.Channel))
                     .ToArray();
 
-                SaveSettings();
+                ChannelService.Delete(e.Channel);
             }
         }
 
@@ -47,24 +50,19 @@ namespace WrBot
         {
             if(AppSettings.BotSettings.Channels.Count(c => c.Name.EqualsIgnoreCase(e.Channel)) == 0)
             {
+                var newChannel = new ChannelSettings
+                {
+                    Name = e.Channel,
+                    Runner = new DefaultValueSettings(e.Channel),
+                    Game = new DefaultValueSettings(e.Channel),
+                    Category = new DefaultValueSettings(e.Channel)
+                };
+
                 AppSettings.BotSettings.Channels = 
-                    AppSettings.BotSettings.Channels.Append(new ChannelSettings{
-                        Name = e.Channel,
-                        Runner = new DefaultValueSettings(),
-                        Game = new DefaultValueSettings(),
-                        Category = new DefaultValueSettings()
-                    }).ToArray();
+                    AppSettings.BotSettings.Channels.Append(newChannel).ToArray();
 
-                SaveSettings();
+                ChannelService.Add(newChannel);
             }
-        }
-
-        private void SaveSettings()
-        {
-            var jsonString = JsonConvert.SerializeObject(AppSettings, Formatting.Indented);
-            File.WriteAllText(
-                Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "appsettings.json",
-                jsonString);
         }
 
         public void Read()

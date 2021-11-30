@@ -9,6 +9,13 @@ public class DefaultValueSettings
     [JsonIgnore]
     public EventHandler<OnSetDefaultChangedArgs> OnSetDefaultChanged;
 
+    private string Parent;
+
+    public DefaultValueSettings(string parent)
+    {
+        this.Parent = parent;
+    }
+
     public void Set(bool enable, string value)
     {
         var newEnabled = this.Enabled || enable;
@@ -35,7 +42,7 @@ public class DefaultValueSettings
     {
         if (this.OnSetDefaultChanged != null)
         {
-            this.OnSetDefaultChanged.Invoke(this, new OnSetDefaultChangedArgs());
+            this.OnSetDefaultChanged.Invoke(this, new OnSetDefaultChangedArgs(this.Parent));
         }
     }
 }

@@ -25,9 +25,9 @@ namespace WrBotTests.Builders
                     new ChannelSettings
                     {
                         Name = this.Channel,
-                        Runner = new DefaultValueSettings(),
-                        Game = new DefaultValueSettings(),
-                        Category = new DefaultValueSettings()
+                        Runner = new DefaultValueSettings(this.Channel),
+                        Game = new DefaultValueSettings(this.Channel),
+                        Category = new DefaultValueSettings(this.Channel)
                     }
                 }
             };

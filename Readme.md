@@ -25,44 +25,19 @@
 For security reasons the mandatory appsettings.json file is not provided in the source code. If you want to run this bot on your machine you will need to create it. Here is the structure it should have:
 ````json
 {
+   "NHSettings": {
+    "Host": "host",
+    "Port": 5432,
+    "Database": "db",
+    "User": "user",
+    "Password": "password"
+  },
    "BotSettings":{
       "BotName":"ChannelOfTheBot",
       "ClientId":"",
       "AccessToken":"",
       "KeepAlive": 300000,
-      "KeepChannelsConnected": 15000,
-      "Channels":[
-         {
-            "Name":"ChannelOfTheBot",
-            "Runner":{
-               "Enabled":false,
-               "Value":null
-            },
-            "Game":{
-               "Enabled":false,
-               "Value":null
-            },
-            "Category":{
-               "Enabled":false,
-               "Value":null
-            }
-         },
-         {
-            "Name":"OtherChannel",
-            "Runner":{
-               "Enabled":false,
-               "Value":null
-            },
-            "Game":{
-               "Enabled":true,
-               "Value":"Celeste"
-            },
-            "Category":{
-               "Enabled":true,
-               "Value":"All red berries"
-            }
-         }
-      ]
+      "KeepChannelsConnected": 15000
    }
 }
 ````

@@ -20,6 +20,9 @@ namespace WrBot
 
             var nhSessionFactory = CreateSessionFactory(appSettings.NHSettings);
             var logService = new LogService(nhSessionFactory);
+            var channelService = new ChannelService(nhSessionFactory);
+
+            appSettings.BotSettings.Channels = channelService.GetAll();
 
             ConfigureLogs(logService);
             
@@ -28,7 +31,7 @@ namespace WrBot
             var twitchClient = TwitchClientFactory.Connect(appSettings.BotSettings);
             var bot = new Bot(appSettings.BotSettings, twitchApi, srcApi, twitchClient);
             
-            var cli = new CommandLineInterpreter(appSettings, bot);
+            var cli = new CommandLineInterpreter(appSettings, bot, channelService);
 
             Log.Information("Listening to " + string.Join(", ", appSettings.BotSettings.Channels.Select(c => c.Name)));
             Console.WriteLine("Type 'quit' to close the WrBot");

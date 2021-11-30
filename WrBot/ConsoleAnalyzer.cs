@@ -11,6 +11,11 @@ public class ConsoleAnalyzer
     public void Analyze(string line)
     {
         ResetDefaults();
+
+        if (line  == null)
+        {
+            return;
+        }
         
         var commandMatch = Regex.Match(line, @"^\w+($|\s)");
         if (commandMatch.Success 

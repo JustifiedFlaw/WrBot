@@ -54,6 +54,8 @@ namespace WrBot
                                 retainedFileTimeLimit: twoWeeks)
                             .WriteTo.Console(LogEventLevel.Debug)
                             .CreateLogger();
+            
+            Console.WriteLine($"Running in {Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}");
         }
     }
 }

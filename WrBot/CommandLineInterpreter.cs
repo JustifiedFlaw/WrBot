@@ -58,6 +58,10 @@ namespace WrBot
                     Category = new DefaultValueSettings(e.Channel)
                 };
 
+                newChannel.Runner.OnSetDefaultChanged += DefaultValue_Changed;
+                newChannel.Game.OnSetDefaultChanged += DefaultValue_Changed;
+                newChannel.Category.OnSetDefaultChanged += DefaultValue_Changed;
+
                 AppSettings.BotSettings.Channels = 
                     AppSettings.BotSettings.Channels.Append(newChannel).ToArray();
 

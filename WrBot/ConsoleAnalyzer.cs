@@ -12,6 +12,11 @@ public class ConsoleAnalyzer
     {
         ResetDefaults();
         
+        if (line  == null)
+        {
+            return;
+        }
+
         var commandMatch = Regex.Match(line, @"^\w+($|\s)");
         if (commandMatch.Success 
             && Enum.TryParse<ConsoleCommands>(commandMatch.Value, true, out var command))

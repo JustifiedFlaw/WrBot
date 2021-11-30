@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using FluentNHibernate.Cfg;
+using FluentNHibernate.Cfg.Db;
 using Newtonsoft.Json;
+using NHibernate;
 using Serilog;
 using Serilog.Events;
 using SrcFacade;
@@ -13,10 +16,13 @@ namespace WrBot
     {
         static void Main(string[] args)
         {
-            ConfigureLogs();
-            
-            var appSettings = LoadAppSettings();            
+            var appSettings = LoadAppSettings();
 
+            var nhSessionFactory = CreateSessionFactory(appSettings.NHSettings);
+            var logService = new LogService(nhSessionFactory);
+
+            ConfigureLogs(logService);
+            
             var twitchApi = TwitchApiFactory.Connect(appSettings.BotSettings.ClientId, appSettings.BotSettings.AccessToken);
             var srcApi = SrcApiFactory.Connect();
             var twitchClient = TwitchClientFactory.Connect(appSettings.BotSettings);
@@ -43,19 +49,31 @@ namespace WrBot
             return JsonConvert.DeserializeObject<AppSettings>(jsonString);
         }
 
-        private static void ConfigureLogs()
+        private static ISessionFactory CreateSessionFactory(NHSettings nhSettings)
+        {
+            var nhConfiguration = Fluently.Configure();
+            nhConfiguration.Database(PostgreSQLConfiguration.Standard
+                .ConnectionString(c => {
+                    c.Host(nhSettings.Host);
+                    c.Port(nhSettings.Port);
+                    c.Database(nhSettings.Database);
+                    c.Username(nhSettings.User);
+                    c.Password(nhSettings.Password);
+                }));
+
+            nhConfiguration.Mappings(m => m.FluentMappings.AddFromAssemblyOf<LogItem>());
+
+            return nhConfiguration.BuildSessionFactory();
+        }
+
+        private static void ConfigureLogs(ILogService logService)
         {
             var twoWeeks = new System.TimeSpan(14, 0, 0, 0);
             Log.Logger = new LoggerConfiguration()
                             .MinimumLevel.Verbose()
-                            .WriteTo.File($"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}wrbot.log",
-                                restrictedToMinimumLevel: LogEventLevel.Information,
-                                rollingInterval: RollingInterval.Day,
-                                retainedFileTimeLimit: twoWeeks)
                             .WriteTo.Console(LogEventLevel.Debug)
+                            .WriteTo.NHibernateSink(logService, LogEventLevel.Information)
                             .CreateLogger();
-            
-            Console.WriteLine($"Running in {Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}");
         }
     }
 }

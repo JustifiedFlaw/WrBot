@@ -11,11 +11,6 @@ public class ConsoleAnalyzer
     public void Analyze(string line)
     {
         ResetDefaults();
-
-        if (line  == null)
-        {
-            return;
-        }
         
         if (line  == null)
         {

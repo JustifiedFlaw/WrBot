@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using FluentMigrator.Runner;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NHibernate;
 using Serilog;
@@ -18,7 +20,9 @@ namespace WrBot
         {
             var appSettings = LoadAppSettings();
 
-            var nhSessionFactory = CreateSessionFactory(appSettings.NHSettings);
+            DatabaseMigration(appSettings.DatabaseSettings);
+
+            var nhSessionFactory = CreateSessionFactory(appSettings.DatabaseSettings);
             var logService = new LogService(nhSessionFactory);
             var channelService = new ChannelService(nhSessionFactory);
 
@@ -52,17 +56,11 @@ namespace WrBot
             return JsonConvert.DeserializeObject<AppSettings>(jsonString);
         }
 
-        private static ISessionFactory CreateSessionFactory(NHSettings nhSettings)
+        private static ISessionFactory CreateSessionFactory(DatabaseSettings databaseSettings)
         {
             var nhConfiguration = Fluently.Configure();
             nhConfiguration.Database(PostgreSQLConfiguration.Standard
-                .ConnectionString(c => {
-                    c.Host(nhSettings.Host);
-                    c.Port(nhSettings.Port);
-                    c.Database(nhSettings.Database);
-                    c.Username(nhSettings.User);
-                    c.Password(nhSettings.Password);
-                }));
+                .ConnectionString(databaseSettings.ConnectionString));
 
             nhConfiguration.Mappings(m => m.FluentMappings.AddFromAssemblyOf<LogItem>());
 
@@ -77,6 +75,24 @@ namespace WrBot
                             .WriteTo.Console(LogEventLevel.Debug)
                             .WriteTo.NHibernateSink(logService, LogEventLevel.Information)
                             .CreateLogger();
+        }
+
+        private static void DatabaseMigration(DatabaseSettings databaseSettings)
+        {
+            var serviceProvider = new ServiceCollection()
+                .AddFluentMigratorCore()
+                .ConfigureRunner(rb => rb
+                    .AddPostgres()
+                    .WithGlobalConnectionString(databaseSettings.ConnectionString)
+                    .ScanIn(typeof(AddChannelsAndLogsTables).Assembly).For.Migrations())
+                .AddLogging(lb => lb.AddFluentMigratorConsole())
+                .BuildServiceProvider(false);
+            
+            using (var scope = serviceProvider.CreateScope())
+            {
+                var runner = serviceProvider.GetRequiredService<IMigrationRunner>();
+                runner.MigrateUp();
+            }
         }
     }
 }

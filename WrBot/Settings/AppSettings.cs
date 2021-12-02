@@ -1,5 +1,5 @@
 public class AppSettings
 {
-    public NHSettings NHSettings { get; set; }
+    public DatabaseSettings DatabaseSettings { get; set; }
     public BotSettings BotSettings { get; set; }
 }

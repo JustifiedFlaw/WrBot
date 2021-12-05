@@ -209,6 +209,7 @@ public class Bot : TwitchBot
 
     private Stream GetStreamInfo(string channel)
     {
+        // TODO: get user id and then channel by id?
         var streamInfo = this.Cache["Stream " + channel] as Stream;
         if (streamInfo == null)
         {

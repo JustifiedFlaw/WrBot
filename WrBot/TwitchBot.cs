@@ -99,7 +99,9 @@ public class TwitchBot
 
     private void TwitchClient_OnLog(object sender, OnLogArgs e)
     {
-        if (e.Data.Contains(" NOTICE "))
+        if (e.Data.Contains(" NOTICE ")
+            && !e.Data.Contains("msg-id=host_on")
+            && !e.Data.Contains("msg-id=host_target_went_offline"))
         {
             Log.Warning(e.Data);
         }

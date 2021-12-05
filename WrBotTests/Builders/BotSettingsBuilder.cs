@@ -20,6 +20,7 @@ namespace WrBotTests.Builders
                 ClientId = "",
                 AccessToken = "",
                 KeepAlive = 3000,
+                KeepChannelsConnected = 15000,
                 Channels = new ChannelSettings[]
                 {
                     new ChannelSettings

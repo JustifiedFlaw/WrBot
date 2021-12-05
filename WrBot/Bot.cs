@@ -10,11 +10,7 @@ using TwitchLib.Client.Interfaces;
 
 public class Bot : TwitchBot
 {
-    public ITwitchApi TwitchApi { get; private set; }
     public ISrcApi SrcApi { get; private set; }
-
-    public EventHandler<OnBotJoinedChannelArgs> OnJoinedChannel;
-    public EventHandler<OnBotLeftChannelArgs> OnLeftChannel;
 
     private MemoryCache Cache = new MemoryCache("Bot");
 
@@ -22,9 +18,8 @@ public class Bot : TwitchBot
         ITwitchApi twitchApi,
         ISrcApi srcApi,
         ITwitchClient twitchClient) 
-        : base(settings, twitchClient)
+        : base(settings, twitchApi, twitchClient)
     {
-        this.TwitchApi = twitchApi;
         this.SrcApi = srcApi;
 
         this.Commands.Add("joinme", Command_JoinMe);
@@ -68,13 +63,7 @@ public class Bot : TwitchBot
     {
         this.TwitchClient.LeaveChannel(channel);
 
-        if (this.OnLeftChannel != null)
-        {
-            this.OnLeftChannel.Invoke(this, new OnBotLeftChannelArgs
-            {
-                Channel = channel
-            });
-        }
+        InvokeOnLeftChannel(channel);
 
         SendMessage(this.Settings.BotName, $"Left {channel}");
     }

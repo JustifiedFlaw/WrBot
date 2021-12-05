@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Timers;
 using Serilog;
+using TwitchFacade;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Interfaces;
 using TwitchLib.Communication.Events;
@@ -9,15 +10,20 @@ using TwitchLib.Communication.Events;
 public class TwitchBot
 {
     public BotSettings Settings { get; set; }
-    public CommandDictionary Commands { get; set; } = new CommandDictionary();
+    public ITwitchApi TwitchApi { get; set; }
     public ITwitchClient TwitchClient { get; set; }
+    public CommandDictionary Commands { get; set; } = new CommandDictionary();
+
+    public EventHandler<OnBotJoinedChannelArgs> OnJoinedChannel;
+    public EventHandler<OnBotLeftChannelArgs> OnLeftChannel;
 
     private Timer KeepTwitchConnectionAlive { get; set; }
     private Timer KeepChannelsConnected { get; set; }
     
-    public TwitchBot(BotSettings settings, ITwitchClient twitchClient)
+    public TwitchBot(BotSettings settings, ITwitchApi twitchApi, ITwitchClient twitchClient)
     {
         this.Settings = settings;
+        this.TwitchApi = twitchApi;
         this.TwitchClient = twitchClient;
 
         ConnectTwitchClientEvents();
@@ -48,8 +54,29 @@ public class TwitchBot
         var disconnectedChannels = this.Settings.Channels.Where(c => !this.TwitchClient.JoinedChannels.Any(j => j.Channel.EqualsIgnoreCase(c.Name)));
         foreach (var channel in disconnectedChannels)
         {
-            Log.Warning($"Disconnected from {channel.Name}, rejoining");
-            this.TwitchClient.JoinChannel(channel.Name);
+            Log.Warning($"Disconnected from {channel.Name}");
+
+            if (ChannelIsValid(channel.Name))
+            {
+                Log.Warning($"Rejoining {channel.Name}");
+                this.TwitchClient.JoinChannel(channel.Name);            
+            }
+            else
+            {
+                Log.Error($"Channel {channel.Name} was not found on twitch, removing from list");
+                InvokeOnLeftChannel(channel.Name);
+            }
+        }
+    }
+
+    public void InvokeOnLeftChannel(string channelName)
+    {
+        if (this.OnLeftChannel != null)
+        {
+            this.OnLeftChannel.Invoke(this, new OnBotLeftChannelArgs
+            {
+                Channel = channelName
+            });
         }
     }
 
@@ -128,5 +155,12 @@ public class TwitchBot
         }
         
         return message;
+    }
+    
+    private bool ChannelIsValid(string channelName)
+    {
+        var users = this.TwitchApi.GetUsers(channelName).Result.Data;
+
+        return users.Count > 0;
     }
 }

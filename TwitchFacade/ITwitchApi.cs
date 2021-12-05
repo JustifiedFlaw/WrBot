@@ -16,5 +16,8 @@ namespace TwitchFacade
 
         [Get("streams?user_login={userLogin}")]
         Task<Streams> GetStreams([Path] string userLogin);
+
+        [Get("users?login={login}")]
+        Task<TwitchUsers> GetUsers([Path] string login);
     }
 }

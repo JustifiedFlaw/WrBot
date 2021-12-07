@@ -79,19 +79,20 @@ namespace WrBot
 
         private static void DatabaseMigration(DatabaseSettings databaseSettings)
         {
-            var serviceProvider = new ServiceCollection()
+            using (var serviceProvider = new ServiceCollection()
                 .AddFluentMigratorCore()
                 .ConfigureRunner(rb => rb
                     .AddPostgres()
                     .WithGlobalConnectionString(databaseSettings.ConnectionString)
                     .ScanIn(typeof(AddChannelsAndLogsTables).Assembly).For.Migrations())
                 .AddLogging(lb => lb.AddFluentMigratorConsole())
-                .BuildServiceProvider(false);
-            
-            using (var scope = serviceProvider.CreateScope())
+                .BuildServiceProvider(false))
             {
-                var runner = serviceProvider.GetRequiredService<IMigrationRunner>();
-                runner.MigrateUp();
+                using (var scope = serviceProvider.CreateScope())
+                {
+                    var runner = serviceProvider.GetRequiredService<IMigrationRunner>();
+                    runner.MigrateUp();
+                }
             }
         }
     }

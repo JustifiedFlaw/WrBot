@@ -45,14 +45,13 @@ namespace WrBot
 
         private static AppSettings LoadAppSettings()
         {
-            var filePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "appsettings.json";
+            var jsonString = Environment.GetEnvironmentVariable("WRBOTCFG");
 
-            if (!File.Exists(filePath))
+            if (string.IsNullOrWhiteSpace(jsonString))
             {
-                throw new FileNotFoundException(filePath);
+                throw new Exception("WRBOTCFG Environment variable is missing. See Github page (https://github.com/JustifiedFlaw/WrBot) to see how to set it.");
             }
 
-            var jsonString = File.ReadAllText(filePath);
             return JsonConvert.DeserializeObject<AppSettings>(jsonString);
         }
 

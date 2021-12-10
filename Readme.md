@@ -21,11 +21,36 @@
 | !pb -setcategory "category name" | Sets the default category permanently | Broadcaster and moderators |
 | !wr -reset | Resets the defaults permanently | Broadcaster and moderators |
 
-# Creating the appsettings.json file
-For security reasons the mandatory appsettings.json file is not provided in the source code. If you want to run this bot on your machine you will need to create it. Here is the structure it should have:
+# Mandatory Environment Variable 
+WrBot needs a WRBOTCFG environment variable. You can set this variable in like any other in your OS, or in VS Code you can add an *env* section in your *configurations* section of *launch.json*
+
+### Contents of launch.json
 ````json
 {
-   "NHSettings": {
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "...",
+            "console": "internalConsole",
+            "...": "..."
+            "env": {
+                "WRBOTCFG": "..."
+            }
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}
+````
+
+### Contents of WRBOTCFG
+````json
+{
+   "DatabaseSettings": {
     "Host": "host",
     "Port": 5432,
     "Database": "db",

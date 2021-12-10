@@ -18,7 +18,7 @@ namespace WrBot
     {
         static void Main(string[] args)
         {
-            var appSettings = LoadAppSettings();
+            var appSettings = AppSettingsFactory.Load();
 
             DatabaseMigration(appSettings.DatabaseSettings);
 
@@ -41,18 +41,6 @@ namespace WrBot
             Console.WriteLine("Type 'quit' to close the WrBot");
 
             cli.Read();
-        }
-
-        private static AppSettings LoadAppSettings()
-        {
-            var jsonString = Environment.GetEnvironmentVariable("WRBOTCFG");
-
-            if (string.IsNullOrWhiteSpace(jsonString))
-            {
-                throw new Exception("WRBOTCFG Environment variable is missing. See Github page (https://github.com/JustifiedFlaw/WrBot) to see how to set it.");
-            }
-
-            return JsonConvert.DeserializeObject<AppSettings>(jsonString);
         }
 
         private static ISessionFactory CreateSessionFactory(DatabaseSettings databaseSettings)

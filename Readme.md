@@ -22,7 +22,7 @@
 | !wr -reset | Resets the defaults permanently | Broadcaster and moderators |
 
 # Mandatory Environment Variable 
-WrBot needs a WRBOTCFG environment variable. You can set this variable in like any other in your OS, or in VS Code you can add an *env* section in your *configurations* section of *launch.json*
+WrBot needs environment variables. You can set these variable like any other in your OS, or in VS Code you can add an *env* section in your *configurations* section of *launch.json*
 
 ### Contents of launch.json
 ````json
@@ -33,9 +33,18 @@ WrBot needs a WRBOTCFG environment variable. You can set this variable in like a
         {
             "name": "...",
             "console": "internalConsole",
-            "...": "..."
+            "...": "...",
             "env": {
-                "WRBOTCFG": "..."
+                "WRBOT_DB_HOST": "database server host",
+                "WRBOT_DB_PORT": "database server port",
+                "WRBOT_DB_DB": "database name",
+                "WRBOT_DB_USER": "databse user",
+                "WRBOT_DB_PWRD": "password",
+                "WRBOT_BOT_NAME": "twitch channel of bot",
+                "WRBOT_BOT_CID": "client id",
+                "WRBOT_BOT_TKN": "access token",
+                "WRBOT_BOT_KA": "300000",
+                "WRBOT_BOT_KC": "15000"
             }
         },
         {
@@ -44,25 +53,5 @@ WrBot needs a WRBOTCFG environment variable. You can set this variable in like a
             "request": "attach"
         }
     ]
-}
-````
-
-### Contents of WRBOTCFG
-````json
-{
-   "DatabaseSettings": {
-    "Host": "host",
-    "Port": 5432,
-    "Database": "db",
-    "User": "user",
-    "Password": "password"
-  },
-   "BotSettings":{
-      "BotName":"ChannelOfTheBot",
-      "ClientId":"",
-      "AccessToken":"",
-      "KeepAlive": 300000,
-      "KeepChannelsConnected": 15000
-   }
 }
 ````

@@ -43,8 +43,8 @@ WrBot needs environment variables. You can set these variable like any other in 
                 "WRBOT_BOT_NAME": "twitch channel of bot",
                 "WRBOT_BOT_CID": "client id",
                 "WRBOT_BOT_TKN": "access token",
-                "WRBOT_BOT_KA": "300000",
-                "WRBOT_BOT_KC": "15000"
+                "WRBOT_BOT_KA": "milliseconds for keep twitch connection alive timer",
+                "WRBOT_BOT_KC": "milliseconds for keep channel connection alive timer"
             }
         },
         {
